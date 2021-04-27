@@ -1,0 +1,13 @@
+[workspace]
+members = ["gru-math", "gru-text", "gru-time"]
+
+[package]
+name = "gru-misc"
+version = "0.1.0"
+authors = ["Jannik Fehre"]
+edition = "2018"
+
+[dependencies]
+gru-time = { path = "gru-time" }
+gru-math = { path = "gru-math" }
+gru-text = { path = "gru-text" }

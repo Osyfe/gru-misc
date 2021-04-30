@@ -71,6 +71,11 @@ impl Mat2
 	{
 		Self((self.0.0, self.1.0), (self.0.1, self.1.1))
 	}
+
+	pub fn to_array(&self) -> [f32; 4]
+	{
+		[self.0.0, self.0.1, self.1.0, self.1.1]
+	}
 }
 
 #[derive(Clone, Copy)]
@@ -197,6 +202,11 @@ impl Mat3
         	(self.2.0, self.2.1, self.2.2, 0.0),
         	(0.0, 0.0, 0.0, 1.0)
 		)
+	}
+
+	pub fn to_array(&self) -> [f32; 9]
+	{
+		[self.0.0, self.0.1, self.0.2, self.1.0, self.1.1, self.1.2, self.2.0, self.2.1, self.2.2]
 	}
 }
 
@@ -364,5 +374,10 @@ impl Mat4
 	pub fn transform(self, v: Vec3) -> Vec3
 	{
 		(self * v.with_w1()).without_w()
+	}
+
+	pub fn to_array(&self) -> [f32; 16]
+	{
+		[self.0.0, self.0.1, self.0.2, self.0.3, self.1.0, self.1.1, self.1.2, self.1.3, self.2.0, self.2.1, self.2.2, self.2.3, self.3.0, self.3.1, self.3.2, self.3.3]
 	}
 }

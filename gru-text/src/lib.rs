@@ -8,7 +8,7 @@ pub struct Font<'a>
 
 impl<'a> Font<'a>
 {
-	pub fn from(data: &'a [u8]) -> Self
+	pub fn new(data: &'a [u8]) -> Self
 	{
 		Font { font: ab_glyph::FontRef::try_from_slice(data).unwrap() }
 	}
@@ -210,9 +210,9 @@ impl Atlas
 					line_length = 0.0;
 					base_x = 0.0;
 				}
-				line.words.push(word);
 				line_length += word_length;
-				base_x += self.space + word_length;
+				base_x += if line.words.len() == 0 { word_length } else { self.space + word_length };
+				line.words.push(word);
 			}
 			if line.words.len() > 0
 			{

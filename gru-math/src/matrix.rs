@@ -296,9 +296,21 @@ impl Mat4
 			(0.0, 0.0, 0.0, 1.0)
 		)
 	}
-
 	//z_lin = z_sample * z_near / (z_sample * (z_near - z_far) + z_far)
-	pub fn perspective(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
+	pub fn perspective_opengl(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
+	{
+		let a = 1.0 / (fovy / 2.0).tan();
+		let b = 1.0 / (z_far - z_near);
+		Self
+		(
+			(a / aspect, 0.0, 0.0, 0.0),
+			(0.0, a, 0.0, 0.0),
+			(0.0, 0.0, -(z_near + z_far) * b, -1.0),
+			(0.0, 0.0, -2.0 * z_near * z_far * b, 0.0)
+		)
+	}
+	//z_lin = z_sample * z_near / (z_sample * (z_near - z_far) + z_far)
+	pub fn perspective_vulkan(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
 	{
 		let a = 1.0 / (fovy / 2.0).tan();
 		let b = z_far / (z_far - z_near);

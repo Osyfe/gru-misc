@@ -258,6 +258,12 @@ impl Rotor
 	{
 		self.to_mat3().to_mat4() //gets optimised in release mode
 	}
+
+	pub fn fix(self) -> Self
+	{
+		let norm = (self.s * self.s + self.yz * self.yz + self.zx * self.zx + self.xy * self.xy).sqrt();
+		Self { s: self.s / norm, yz: self.yz / norm, zx: self.zx / norm, xy: self.xy / norm }
+	}
 }
 
 #[derive(Clone, Copy)]

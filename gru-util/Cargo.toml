@@ -1,0 +1,7 @@
+[package]
+name = "gru-util"
+version = "0.1.0"
+authors = ["Jannik Fehre"]
+edition = "2018"
+
+[dependencies]

@@ -1,5 +1,5 @@
 [workspace]
-members = ["gru-math", "gru-text", "gru-time"]
+members = ["gru-math", "gru-text", "gru-time", "gru-util"]
 
 [package]
 name = "gru-misc"
@@ -11,3 +11,4 @@ edition = "2018"
 gru-time = { path = "gru-time" }
 gru-math = { path = "gru-math" }
 gru-text = { path = "gru-text" }
+gru-util = { path = "gru-util" }

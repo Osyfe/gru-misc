@@ -274,6 +274,7 @@ impl Atlas
 	}
 }
 
+#[derive(Clone, Copy)]
 pub enum Align
 {
 	Left,

@@ -1,8 +1,0 @@
-[package]
-name = "gru-time"
-version = "0.1.0"
-authors = ["Jannik Fehre"]
-edition = "2018"
-
-[dependencies]
-spin_sleep = "1.0.0"

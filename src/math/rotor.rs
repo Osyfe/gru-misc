@@ -1,8 +1,12 @@
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 use super::*;
 
 //     #####     COMPLEX     #####
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Complex
 {
 	pub re: f32,
@@ -142,6 +146,7 @@ impl Complex
 //     #####     ROTOR     #####
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rotor
 {
 	s: f32, //scalar
@@ -267,6 +272,7 @@ impl Rotor
 }
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 enum SlerpFunction
 {
 	Exact { omega: f32, sin_omega: f32 },
@@ -292,6 +298,7 @@ impl SlerpFunction
 }
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Slerp
 {
 	function: SlerpFunction,

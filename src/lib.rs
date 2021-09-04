@@ -1,4 +1,12 @@
-pub use gru_time as time;
-pub use gru_math as math;
-pub use gru_text as text;
-pub use gru_util as util;
+#[cfg(feature = "color")]
+pub mod color;
+#[cfg(feature = "io")]
+pub mod io;
+#[cfg(feature = "time")]
+pub mod time;
+#[cfg(feature = "text")]
+pub mod text;
+#[cfg(feature = "math")]
+pub mod math;
+#[cfg(feature = "rand")]
+pub mod rand;

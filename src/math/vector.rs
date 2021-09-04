@@ -1,3 +1,6 @@
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 use super::*;
 
 macro_rules! impl_ops
@@ -52,6 +55,7 @@ macro_rules! impl_ops
 }
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Vec2(pub f32, pub f32);
 
@@ -115,6 +119,7 @@ impl Vec2
 }
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Vec3(pub f32, pub f32, pub f32);
 
@@ -194,6 +199,7 @@ impl Vec3
 
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Vec4(pub f32, pub f32, pub f32, pub f32);
 

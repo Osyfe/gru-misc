@@ -1,8 +1,12 @@
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 use super::*;
 
 //All matrices are column major (=> ready for shaders)!
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Mat2(pub (f32, f32), pub (f32, f32));
 
@@ -79,6 +83,7 @@ impl Mat2
 }
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Mat3(pub (f32, f32, f32), pub (f32, f32, f32), pub (f32, f32, f32));
 
@@ -211,6 +216,7 @@ impl Mat3
 }
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Mat4(pub (f32, f32, f32, f32), pub (f32, f32, f32, f32), pub (f32, f32, f32, f32), pub (f32, f32, f32, f32));
 

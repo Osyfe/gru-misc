@@ -5,3 +5,4 @@ authors = ["Jannik Fehre"]
 edition = "2018"
 
 [dependencies]
+spin_sleep = "1.0.0"

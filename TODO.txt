@@ -1,5 +1,3 @@
 windows icon:
 	https://docs.rs/winres/0.1.11/winres/
 	https://www.anthropicstudios.com/2021/01/05/setting-a-rust-windows-exe-icon/
-LLD Linker?
-math: inline

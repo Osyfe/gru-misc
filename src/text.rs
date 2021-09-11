@@ -138,7 +138,6 @@ impl Atlas
 		{
 			let width = bounds.width() as u32;
 			let height = bounds.height() as u32;
-			row_height = row_height.max(height);
 			if x0 + width >= texture_size
 			{
 				if x0 == 0 { panic!("Atlas::new: \'{}\' is too wide.", ch); }
@@ -146,6 +145,7 @@ impl Atlas
 				y0 += row_height + padding;
 				row_height = 0;
 			}
+            row_height = row_height.max(height);
 			if y0 + height >= texture_size
 			{
 				if y0 == 0 { panic!("Atlas::new: \'{}\' is too high.", ch); }

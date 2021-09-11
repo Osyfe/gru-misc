@@ -10,6 +10,7 @@ macro_rules! impl_ops
 		impl Neg for $ty
 		{
 		    type Output = Self;
+			#[inline]
 		    fn neg(self) -> Self
 		    {
 		        Self($(-self.$i),+)
@@ -19,6 +20,7 @@ macro_rules! impl_ops
 		impl Add<Self> for $ty
 		{
 			type Output = Self;
+			#[inline]
 			fn add(self, other: Self) -> Self
 			{
 				Self($(self.$i + other.$i),+)
@@ -28,6 +30,7 @@ macro_rules! impl_ops
 		impl Sub<Self> for $ty
 		{
 			type Output = Self;
+			#[inline]
 			fn sub(self, other: Self) -> Self
 			{
 				Self($(self.$i - other.$i),+)
@@ -37,6 +40,7 @@ macro_rules! impl_ops
 		impl Mul<f32> for $ty
 		{
 			type Output = Self;
+			#[inline]
 			fn mul(self, other: f32) -> Self
 			{
 				Self($(self.$i * other),+)
@@ -46,6 +50,7 @@ macro_rules! impl_ops
 		impl Div<f32> for $ty
 		{
 			type Output = Self;
+			#[inline]
 			fn div(self, other: f32) -> Self
 			{
 				Self($(self.$i / other),+)
@@ -75,6 +80,7 @@ impl Display for Vec2
 
 impl<T: Into<f32>> From<(T, T)> for Vec2
 {
+	#[inline]
 	fn from(t: (T, T)) -> Vec2
 	{
 		Vec2(t.0.into(), t.1.into())
@@ -83,6 +89,7 @@ impl<T: Into<f32>> From<(T, T)> for Vec2
 
 impl<T: From<f32>> From<Vec2> for (T, T)
 {
+	#[inline]
 	fn from(v: Vec2) -> (T, T)
 	{
 		(v.0.into(), v.1.into())
@@ -91,27 +98,32 @@ impl<T: From<f32>> From<Vec2> for (T, T)
 
 impl Vec2
 {
+	#[inline]
 	pub fn norm(self) -> f32
 	{
 		(self.0 * self.0 + self.1 * self.1).sqrt()
 	}
 
+	#[inline]
 	pub fn unit(self) -> Self
 	{
 		let norm = self.norm();
 		Self(self.0 / norm, self.1 / norm)
 	}
 
+	#[inline]
 	pub fn dot(self, other: Self) -> f32
 	{
 		self.0 * other.0 + self.1 * other.1
 	}
 
+	#[inline]
 	pub fn component_mul(self, other: Self) -> Self
 	{
 		Self(self.0 * other.0, self.1 * other.1)
 	}
 
+	#[inline]
 	pub fn component_div(self, other: Self) -> Self
 	{
 		Self(self.0 / other.0, self.1 / other.1)
@@ -139,6 +151,7 @@ impl Display for Vec3
 
 impl<T: Into<f32>> From<(T, T, T)> for Vec3
 {
+	#[inline]
 	fn from(t: (T, T, T)) -> Vec3
 	{
 		Vec3(t.0.into(), t.1.into(), t.2.into())
@@ -147,6 +160,7 @@ impl<T: Into<f32>> From<(T, T, T)> for Vec3
 
 impl<T: From<f32>> From<Vec3> for (T, T, T)
 {
+	#[inline]
 	fn from(v: Vec3) -> (T, T, T)
 	{
 		(v.0.into(), v.1.into(), v.2.into())
@@ -155,43 +169,51 @@ impl<T: From<f32>> From<Vec3> for (T, T, T)
 
 impl Vec3
 {
+	#[inline]
 	pub fn norm(self) -> f32
 	{
 		(self.0 * self.0 + self.1 * self.1 + self.2 * self.2).sqrt()
 	}
 
+	#[inline]
 	pub fn unit(self) -> Self
 	{
 		let norm = self.norm();
 		Self(self.0 / norm, self.1 / norm, self.2 / norm)
 	}
 
+	#[inline]
 	pub fn dot(self, other: Self) -> f32
 	{
 		self.0 * other.0 + self.1 * other.1 + self.2 * other.2
 	}
 
+	#[inline]
 	pub fn cross(self, other: Self) -> Self
 	{
 		Self(self.1 * other.2 - self.2 * other.1, self.2 * other.0 - self.0 * other.2, self.0 * other.1 - self.1 * other.0)
 	}
 
+	#[inline]
 	pub fn component_mul(self, other: Self) -> Self
 	{
 		Self(self.0 * other.0, self.1 * other.1, self.2 * other.2)
 	}
 
+	#[inline]
 	pub fn component_div(self, other: Self) -> Self
 	{
 		Self(self.0 / other.0, self.1 / other.1, self.2 / other.2)
 	}
 
-	pub fn with_w0(self) -> Vec4
+	#[inline]
+	pub const fn with_w0(self) -> Vec4
 	{
 		Vec4(self.0, self.1, self.2, 0.0)
 	}
 
-	pub fn with_w1(self) -> Vec4
+	#[inline]
+	pub const fn with_w1(self) -> Vec4
 	{
 		Vec4(self.0, self.1, self.2, 1.0)
 	}
@@ -219,6 +241,7 @@ impl Display for Vec4
 
 impl<T: Into<f32>> From<(T, T, T, T)> for Vec4
 {
+	#[inline]
 	fn from(t: (T, T, T, T)) -> Vec4
 	{
 		Vec4(t.0.into(), t.1.into(), t.2.into(), t.3.into())
@@ -227,6 +250,7 @@ impl<T: Into<f32>> From<(T, T, T, T)> for Vec4
 
 impl<T: From<f32>> From<Vec4> for (T, T, T, T)
 {
+	#[inline]
 	fn from(v: Vec4) -> (T, T, T, T)
 	{
 		(v.0.into(), v.1.into(), v.2.into(), v.3.into())
@@ -235,33 +259,39 @@ impl<T: From<f32>> From<Vec4> for (T, T, T, T)
 
 impl Vec4
 {
+	#[inline]
 	pub fn norm(self) -> f32
 	{
 		(self.0 * self.0 + self.1 * self.1 + self.2 * self.2 + self.3 * self.3).sqrt()
 	}
 
+	#[inline]
 	pub fn unit(self) -> Self
 	{
 		let norm = self.norm();
 		Self(self.0 / norm, self.1 / norm, self.2 / norm, self.3 / norm)
 	}
 
+	#[inline]
 	pub fn dot(self, other: Self) -> f32
 	{
 		self.0 * other.0 + self.1 * other.1 + self.2 * other.2 + self.3 * other.3
 	}
 
+	#[inline]
 	pub fn component_mul(self, other: Self) -> Self
 	{
 		Self(self.0 * other.0, self.1 * other.1, self.2 * other.2, self.3 * other.3)
 	}
 
+	#[inline]
 	pub fn component_div(self, other: Self) -> Self
 	{
 		Self(self.0 / other.0, self.1 / other.1, self.2 / other.2, self.3 / other.3)
 	}
 
-	pub fn without_w(self) -> Vec3
+	#[inline]
+	pub const fn without_w(self) -> Vec3
 	{
 		Vec3(self.0, self.1, self.2)
 	}

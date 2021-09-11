@@ -24,6 +24,7 @@ impl Display for Complex
 impl Neg for Complex
 {
     type Output = Self;
+	#[inline]
     fn neg(self) -> Self
     {
         Self { re: -self.re, im: -self.im }
@@ -33,6 +34,7 @@ impl Neg for Complex
 impl Add<Self> for Complex
 {
 	type Output = Self;
+	#[inline]
 	fn add(self, other: Self) -> Self
 	{
 		Self { re: self.re + other.re, im: self.im + other.im }
@@ -42,6 +44,7 @@ impl Add<Self> for Complex
 impl Sub<Self> for Complex
 {
 	type Output = Self;
+	#[inline]
 	fn sub(self, other: Self) -> Self
 	{
 		Self { re: self.re - other.re, im: self.im - other.im }
@@ -51,6 +54,7 @@ impl Sub<Self> for Complex
 impl Mul<Self> for Complex
 {
 	type Output = Self;
+	#[inline]
 	fn mul(self, other: Self) -> Self
 	{
 		Self { re: self.re * other.re - self.im * other.im, im: self.re * other.im + self.im * other.re }
@@ -60,6 +64,7 @@ impl Mul<Self> for Complex
 impl Mul<f32> for Complex
 {
 	type Output = Self;
+	#[inline]
 	fn mul(self, other: f32) -> Self
 	{
 		Self { re: self.re * other, im: self.im * other }
@@ -69,6 +74,7 @@ impl Mul<f32> for Complex
 impl Div<Self> for Complex
 {
 	type Output = Self;
+	#[inline]
 	fn div(self, other: Self) -> Self
 	{
 		self * other.conjugate() / other.r2()
@@ -78,6 +84,7 @@ impl Div<Self> for Complex
 impl Div<f32> for Complex
 {
 	type Output = Self;
+	#[inline]
 	fn div(self, other: f32) -> Self
 	{
 		Self { re: self.re / other, im: self.im / other }
@@ -97,49 +104,58 @@ impl Complex
 	pub const ONE: Self = Self { re: 1.0, im: 0.0 };
 	pub const I: Self = Self { re: 0.0, im: 1.0 };
 
-	pub fn from_re(re: f32) -> Self
+	#[inline]
+	pub const fn from_re(re: f32) -> Self
 	{
 		Self { re, im: 0.0 }
 	}
 
-	pub fn from_im(im: f32) -> Self
+	#[inline]
+	pub const fn from_im(im: f32) -> Self
 	{
 		Self { re: 0.0, im }
 	}
 
+	#[inline]
 	pub fn conjugate(self) -> Self
 	{
 		Self { re: self.re, im: -self.im }
 	}
 
+	#[inline]
 	pub fn r(self) -> f32
 	{
 		self.r2().sqrt()
 	}
 
+	#[inline]
 	pub fn phi(self) -> f32
 	{
 		self.im.atan2(self.re)
 	}
 
+	#[inline]
 	pub fn r2(self) -> f32
 	{
 		self.re * self.re + self.im * self.im
 	}
 
+	#[inline]
 	pub fn exp(self) -> Self
 	{
 		Self { re: self.im.cos(), im: self.im.sin() } * self.re.exp()
 	}
 
+	#[inline]
 	pub fn transform(self, vec: Vec2) -> Vec2
 	{
 		Vec2(self.re * vec.0 - self.im * vec.1, self.im * vec.0 + self.re * vec.1)
 	}
 
+	#[inline]
 	pub fn to_mat2(self) -> Mat2
 	{
-		Mat2((self.re, self.im), (-self.im, self.re))
+		Mat2(Vec2(self.re, self.im), Vec2(-self.im, self.re))
 	}
 }
 
@@ -158,6 +174,7 @@ pub struct Rotor
 impl Neg for Rotor
 {
     type Output = Self;
+	#[inline]
     fn neg(self) -> Self
     {
         Self { s: -self.s, yz: -self.yz, zx: -self.zx, xy: -self.xy }
@@ -167,6 +184,7 @@ impl Neg for Rotor
 impl Mul<Self> for Rotor
 {
 	type Output = Self;
+	#[inline]
 	fn mul(self, other: Self) -> Self
 	{
 		Self
@@ -183,6 +201,7 @@ impl_mul_assign!(Rotor, Self);
 
 impl Rotor
 {
+	#[inline]
 	pub fn from_unit_axis(axis: Vec3, phi: f32) -> Self
 	{
 		let phi_mod = -phi / 2.0;
@@ -191,6 +210,7 @@ impl Rotor
 		Self { s: cos, yz: sin * axis.0, zx: sin * axis.1, xy: sin * axis.2 }
 	}
 
+	#[inline]
 	pub fn from_axis(axis: Vec3) -> Self
 	{
 		let norm = axis.norm();
@@ -200,20 +220,25 @@ impl Rotor
 		Self { s: cos, yz: sin_red * axis.0, zx: sin_red * axis.1, xy: sin_red * axis.2 }
 	}
 
+	#[inline]
 	pub fn from_quaternion(x: f32, y: f32, z: f32, w: f32) -> Self
 	{
 		Self { s: w, yz: -x, zx: -y, xy: -z }
 	}
 
-	pub fn identity() -> Self
+	#[inline]
+	pub const fn identity() -> Self
 	{
 		Self { s: 1.0, yz: 0.0, zx: 0.0, xy: 0.0 }
 	}
 
+	#[inline]
 	pub fn inverse(self) -> Self
 	{
 		Self { s: self.s, yz: -self.yz, zx: -self.zx, xy: -self.xy }
 	}
+
+	#[inline]
 	pub fn transform(self, vec: Vec3) -> Vec3
 	{
 		//This short version is slightly slower in release mode.
@@ -231,6 +256,7 @@ impl Rotor
 		)
 	}
 
+	#[inline]
 	pub fn to_axis(self) -> Vec3
 	{
 		let phi_mod = self.s.max(-1.0).min(1.0).acos();
@@ -239,6 +265,7 @@ impl Rotor
 		Vec3(self.yz, self.zx, self.xy) * sin_red_inv
 	}
 
+	#[inline]
 	pub fn to_mat3(self) -> Mat3
 	{
 		let s2 = self.s * self.s;
@@ -253,17 +280,19 @@ impl Rotor
 		let xyyz = 2.0 * self.xy * self.yz;
 		Mat3
 		(
-			(s2 + yz2 - zx2 - xy2, -sxy + yzzx, szx + xyyz),
-			(sxy + yzzx, s2 + zx2 - xy2 - yz2, -syz + zxxy),
-			(-szx + xyyz, syz + zxxy, s2 + xy2 - yz2 - zx2)
+			Vec3(s2 + yz2 - zx2 - xy2, -sxy + yzzx, szx + xyyz),
+			Vec3(sxy + yzzx, s2 + zx2 - xy2 - yz2, -syz + zxxy),
+			Vec3(-szx + xyyz, syz + zxxy, s2 + xy2 - yz2 - zx2)
 		)
 	}
 
+	#[inline]
 	pub fn to_mat4(self) -> Mat4
 	{
 		self.to_mat3().to_mat4() //gets optimised in release mode
 	}
 
+	#[inline]
 	pub fn fix(self) -> Self
 	{
 		let norm = (self.s * self.s + self.yz * self.yz + self.zx * self.zx + self.xy * self.xy).sqrt();
@@ -308,6 +337,7 @@ pub struct Slerp
 
 impl Slerp
 {
+	#[inline]
 	pub fn new(r1: Rotor, mut r2: Rotor) -> Self
 	{
 		let mut cos_omega = r1.s * r2.s + r1.yz * r2.yz + r1.zx * r2.zx + r1.xy * r2.xy;
@@ -321,6 +351,7 @@ impl Slerp
 		Self { function, r1, r2 }
 	}
 
+	#[inline]
 	pub fn get(self, t: f32) -> Rotor
 	{
 		let f1 = self.function.get(1.0 - t);

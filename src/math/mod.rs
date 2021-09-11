@@ -9,6 +9,7 @@ macro_rules! impl_add_assign
     {
 		impl AddAssign<$ty2> for $ty
 		{
+			#[inline]
 		    fn add_assign(&mut self, other: $ty2)
 		    {
 		        *self = *self + other
@@ -23,6 +24,7 @@ macro_rules! impl_sub_assign
     {
 		impl SubAssign<$ty2> for $ty
 		{
+			#[inline]
 		    fn sub_assign(&mut self, other: $ty2)
 		    {
 		        *self = *self - other
@@ -37,6 +39,7 @@ macro_rules! impl_mul_assign
     {
 		impl MulAssign<$ty2> for $ty
 		{
+			#[inline]
 		    fn mul_assign(&mut self, other: $ty2)
 		    {
 		        *self = *self * other
@@ -51,6 +54,7 @@ macro_rules! impl_div_assign
     {
 		impl DivAssign<$ty2> for $ty
 		{
+			#[inline]
 		    fn div_assign(&mut self, other: $ty2)
 		    {
 		        *self = *self / other

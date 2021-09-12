@@ -295,4 +295,10 @@ impl Vec4
 	{
 		Vec3(self.0, self.1, self.2)
 	}
+    
+    #[inline]
+    pub fn divide_w(self) -> Vec3
+    {
+        Vec3(self.0 / self.3, self.1 / self.3, self.2 / self.3)
+    }
 }

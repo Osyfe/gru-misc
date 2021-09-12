@@ -362,6 +362,20 @@ impl Mat4
 			Vec4(0.0, 0.0, -z_near * b, 0.0)
 		)
 	}
+    
+    #[inline]
+	pub fn perspective_vulkan_inverse(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
+	{
+		let a_inv = (fovy / 2.0).tan();
+		let b_inv = (z_far - z_near) / z_far;
+		Self
+		(
+			Vec4(a_inv * aspect, 0.0, 0.0, 0.0),
+			Vec4(0.0, a_inv, 0.0, 0.0),
+			Vec4(0.0, 0.0, 0.0, -b_inv / z_near),
+			Vec4(0.0, 0.0, 1.0, 1.0 / z_near)
+		)
+	}
 
 	#[inline]
 	pub const fn translation(dx: f32, dy: f32, dz: f32) -> Self

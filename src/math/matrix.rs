@@ -193,6 +193,12 @@ impl Mat3
 	pub fn rotation_y(phi: f32) -> Self { Self::rotation(Vec3(0.0, 1.0, 0.0), phi) }
 	#[inline]
 	pub fn rotation_z(phi: f32) -> Self { Self::rotation(Vec3(0.0, 0.0, 1.0), phi) }
+    
+    #[inline]
+    pub fn rotation_euler_xyz(phi: f32, theta: f32, psi: f32) -> Self
+    {
+        Self::rotation_z(phi) * Self::rotation_x(theta) * Self::rotation_z(psi)
+    }
 
 	#[inline]
 	pub const fn scale(Vec3(sx, sy, sz): Vec3) -> Self
@@ -378,7 +384,7 @@ impl Mat4
 	}
 
 	#[inline]
-	pub const fn translation(dx: f32, dy: f32, dz: f32) -> Self
+	pub const fn translation(Vec3(dx, dy, dz): Vec3) -> Self
 	{
 		Self
 		(
@@ -390,11 +396,11 @@ impl Mat4
 	}
 
 	#[inline]
-	pub const fn translation_x(dx: f32) -> Self { Self::translation(dx, 0.0, 0.0) }
+	pub const fn translation_x(dx: f32) -> Self { Self::translation(Vec3(dx, 0.0, 0.0)) }
 	#[inline]
-	pub const fn translation_y(dy: f32) -> Self { Self::translation(0.0, dy, 0.0) }
+	pub const fn translation_y(dy: f32) -> Self { Self::translation(Vec3(0.0, dy, 0.0)) }
 	#[inline]
-	pub const fn translation_z(dz: f32) -> Self { Self::translation(0.0, 0.0, dz) }
+	pub const fn translation_z(dz: f32) -> Self { Self::translation(Vec3(0.0, 0.0, dz)) }
 
 	#[inline]
 	pub fn rotation(Vec3(ax, ay, az): Vec3, phi: f32) -> Self
@@ -417,6 +423,12 @@ impl Mat4
 	pub fn rotation_y(phi: f32) -> Self { Self::rotation(Vec3(0.0, 1.0, 0.0), phi) }
 	#[inline]
 	pub fn rotation_z(phi: f32) -> Self { Self::rotation(Vec3(0.0, 0.0, 1.0), phi) }
+    
+    #[inline]
+    pub fn rotation_euler_xyz(phi: f32, theta: f32, psi: f32) -> Self
+    {
+        Self::rotation_z(phi) * Self::rotation_x(theta) * Self::rotation_z(psi)
+    }
 
 	#[inline]
 	pub const fn scale(Vec3(sx, sy, sz): Vec3) -> Self

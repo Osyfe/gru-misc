@@ -1,8 +1,0 @@
-[package]
-name = "gru-text"
-version = "0.1.0"
-authors = ["Jannik Fehre"]
-edition = "2018"
-
-[dependencies]
-ab_glyph = "0.2.9"

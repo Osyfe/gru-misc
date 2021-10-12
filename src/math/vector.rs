@@ -59,7 +59,7 @@ macro_rules! impl_ops
 	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Vec2(pub f32, pub f32);
@@ -99,6 +99,12 @@ impl<T: From<f32>> From<Vec2> for (T, T)
 impl Vec2
 {
 	#[inline]
+	pub fn norm_sqr(self) -> f32
+	{
+		self.0 * self.0 + self.1 * self.1
+	}
+
+	#[inline]
 	pub fn norm(self) -> f32
 	{
 		(self.0 * self.0 + self.1 * self.1).sqrt()
@@ -128,9 +134,15 @@ impl Vec2
 	{
 		Self(self.0 / other.0, self.1 / other.1)
 	}
+
+	#[inline]
+	pub fn component_inverse(self) -> Self
+	{
+		Self(1.0 / self.0, 1.0 / self.1)
+	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Vec3(pub f32, pub f32, pub f32);
@@ -170,6 +182,12 @@ impl<T: From<f32>> From<Vec3> for (T, T, T)
 impl Vec3
 {
 	#[inline]
+	pub fn norm_sqr(self) -> f32
+	{
+		self.0 * self.0 + self.1 * self.1 + self.2 * self.2
+	}
+
+	#[inline]
 	pub fn norm(self) -> f32
 	{
 		(self.0 * self.0 + self.1 * self.1 + self.2 * self.2).sqrt()
@@ -207,6 +225,12 @@ impl Vec3
 	}
 
 	#[inline]
+	pub fn component_inverse(self) -> Self
+	{
+		Self(1.0 / self.0, 1.0 / self.1, 1.0 / self.2)
+	}
+
+	#[inline]
 	pub const fn with_w0(self) -> Vec4
 	{
 		Vec4(self.0, self.1, self.2, 0.0)
@@ -220,7 +244,7 @@ impl Vec3
 }
 
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Vec4(pub f32, pub f32, pub f32, pub f32);
@@ -260,6 +284,12 @@ impl<T: From<f32>> From<Vec4> for (T, T, T, T)
 impl Vec4
 {
 	#[inline]
+	pub fn norm_sqr(self) -> f32
+	{
+		self.0 * self.0 + self.1 * self.1 + self.2 * self.2 + self.3 * self.3
+	}
+
+	#[inline]
 	pub fn norm(self) -> f32
 	{
 		(self.0 * self.0 + self.1 * self.1 + self.2 * self.2 + self.3 * self.3).sqrt()
@@ -288,6 +318,12 @@ impl Vec4
 	pub fn component_div(self, other: Self) -> Self
 	{
 		Self(self.0 / other.0, self.1 / other.1, self.2 / other.2, self.3 / other.3)
+	}
+
+	#[inline]
+	pub fn component_inverse(self) -> Self
+	{
+		Self(1.0 / self.0, 1.0 / self.1, 1.0 / self.2, 1.0 / self.3)
 	}
 
 	#[inline]

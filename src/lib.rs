@@ -10,3 +10,5 @@ pub mod text;
 pub mod math;
 #[cfg(feature = "rand")]
 pub mod rand;
+#[cfg(feature = "ui")]
+pub mod ui;

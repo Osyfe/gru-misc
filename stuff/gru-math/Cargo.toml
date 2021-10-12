@@ -1,8 +1,0 @@
-[package]
-name = "gru-math"
-version = "0.1.0"
-authors = ["Jannik Fehre"]
-edition = "2018"
-
-[dependencies]
-serde = { version = "1.0.129", default-features = false, features = ["derive"], optional = true }

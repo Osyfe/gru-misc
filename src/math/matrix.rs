@@ -75,7 +75,7 @@ impl Mat2
 	}
 
 	#[inline]
-	pub const fn scale_xyz(s: f32) -> Self { Self::scale(Vec2(s, s)) }
+	pub const fn scale_xy(s: f32) -> Self { Self::scale(Vec2(s, s)) }
 	#[inline]
 	pub const fn scale_x(s: f32) -> Self { Self::scale(Vec2(s, 1.0)) }
 	#[inline]

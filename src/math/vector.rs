@@ -140,6 +140,12 @@ impl Vec2
 	{
 		Self(1.0 / self.0, 1.0 / self.1)
 	}
+
+	#[inline]
+	pub fn component_abs(self) -> Self
+	{
+		Self(self.0.abs(), self.1.abs())
+	}
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -228,6 +234,12 @@ impl Vec3
 	pub fn component_inverse(self) -> Self
 	{
 		Self(1.0 / self.0, 1.0 / self.1, 1.0 / self.2)
+	}
+
+	#[inline]
+	pub fn component_abs(self) -> Self
+	{
+		Self(self.0.abs(), self.1.abs() , self.2.abs())
 	}
 
 	#[inline]

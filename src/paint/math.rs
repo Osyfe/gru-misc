@@ -35,17 +35,17 @@ impl Rect
     }
 
     #[inline]
-    pub fn contains_l1(self, pos: Vec2) -> bool
+    pub fn contains_l2(self, pos: Vec2) -> bool
     {
-        self.min.0 <= pos.0 && pos.0 <= self.max.0
-     && self.min.1 <= pos.1 && pos.1 <= self.max.1
+        let norm = (pos - self.min).component_div(self.size()) - Vec2(0.5, 0.5);
+        norm.norm_sqr() <= 0.25
     }
 
     #[inline]
-    pub fn contains_l2(self, pos: Vec2) -> bool
+    pub fn contains_linf(self, pos: Vec2) -> bool
     {
-        let norm = (pos - self.min).component_div(self.max - self.min) - Vec2(0.5, 0.5);
-        norm.norm_sqr() <= 0.25
+        self.min.0 <= pos.0 && pos.0 <= self.max.0
+     && self.min.1 <= pos.1 && pos.1 <= self.max.1
     }
 
     #[inline]

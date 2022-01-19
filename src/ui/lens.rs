@@ -1,32 +1,7 @@
-use super::{Widget, Vec2, super::draw::Painter};
+use super::{Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::EventPod, paint::{Vec2, Rect}};
 use std::marker::PhantomData;
 
-pub trait Lens<U, T>: Sized
-{
-    fn with<A, F: FnOnce(&T) -> A>(&self, data: &U, f: F) -> A;
-    fn with_mut<A, F: FnOnce(&mut T) -> A>(&self, data: &mut U, f: F) -> A;
-}
-
-pub use gru_ui_derive::Lens;
-
-pub struct LensUnit;
-
-impl<U> Lens<U, ()> for LensUnit
-{
-    #[inline]
-    fn with<A, F: FnOnce(&()) -> A>(&self, _: &U, f: F) -> A
-    {
-        f(&())
-    }
-
-    #[inline]
-    fn with_mut<A, F: FnOnce(&mut ()) -> A>(&self, _: &mut U, f: F) -> A
-    {
-        f(&mut ())
-    }
-}
-
-pub trait LensExt<U, T>: Lens<U, T>
+pub trait LensExt<U, T>: Lens<U, T> + Sized
 {
     #[inline]
     fn chain<S, L2: Lens<T, S>>(self, lens2: L2) -> LensChain<U, T, S, Self, L2>
@@ -57,15 +32,21 @@ impl<U, T, W: Widget<T>, L: Lens<U, T>> LensWrap<U, T, W, L>
 impl<U, T, W: Widget<T>, L: Lens<U, T>> Widget<U> for LensWrap<U, T, W, L>
 {
     #[inline]
-    fn layout(&self, data: &U, bounds: Vec2) -> Vec2
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut U, event: &mut EventPod)
     {
-        self.lens.with(data, |data| self.inner.layout(data, bounds))
+        self.lens.with_mut(data, |data| self.inner.event(ctx, data, event))
     }
 
     #[inline]
-    fn draw(&self, data: &U, painter: &mut Painter)
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &U, constraints: Rect) -> Vec2
     {
-        self.lens.with(data, |data| self.inner.draw(data, painter));
+        self.lens.with(data, |data| self.inner.layout(ctx, data, constraints))
+    }
+
+    #[inline]
+    fn paint(&self, ctx: &mut PaintCtx, data: &U, size: Vec2)
+    {
+        self.lens.with(data, |data| self.inner.paint(ctx, data, size));
     }
 }
 
@@ -96,7 +77,7 @@ impl<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>> Lens<V, T> for LensChain<V, U, T, 
     }
 
     #[inline]
-    fn with_mut<A, F: FnOnce(&mut T) -> A>(&self, data: &mut V, f: F) -> A
+    fn with_mut<A, F: FnOnce(&mut T) -> A>(&mut self, data: &mut V, f: F) -> A
     {
         self.lens1.with_mut(data, |data| self.lens2.with_mut(data, |data| f(data)))
     }

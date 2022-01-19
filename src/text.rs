@@ -86,6 +86,7 @@ impl<'a> Font<'a>
 	}
 }
 
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 struct Glyph
 {
@@ -97,22 +98,24 @@ struct Glyph
 	h_advance: f32
 }
 
+#[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Atlas
 {
 	glyphs: AHashMap<char, Glyph>,
 	ascent: f32,
 	space: f32,
-	default_glyph: Option<char>
+	default_glyph: Option<Glyph>
 }
 
 impl Atlas
 {
-	pub fn new<I: IntoIterator<Item = char>>(font: Font, chars: I, resolution: f32, texture_size: u32, padding: u32) -> (Vec<Vec<u8>>, Self)
+	pub fn new<I: IntoIterator<Item = char>>(font: Font, chars: I, scale: f32, texture_size: u32, padding: u32) -> (Vec<Vec<u8>>, Self)
 	{
-		let mut builder = AtlasBuilder::new(font, resolution, texture_size, padding);
-		builder.add(chars);
-		builder.finish()
+		let mut builder = AtlasBuilder::new(font, [scale], texture_size, padding);
+		builder.add(0, chars);
+		let (bitmap, [atlas]) = builder.finish();
+		(bitmap, atlas)
 	}
 
 	pub fn contains(&self, ch: char) -> bool
@@ -120,9 +123,8 @@ impl Atlas
 		self.glyphs.contains_key(&ch)
 	}
 
-	pub fn text(&self, text: &str, width: f32, align: Align, index: &mut dyn FnMut(u32), vertex: &mut dyn FnMut((f32, f32, f32), (f32, f32))) -> TextData
+	pub fn text<I: FnMut(u32), V: FnMut((f32, f32, u32), (f32, f32))>(&self, text: &str, layout: Layout, mut index: I, mut vertex: V) -> TextData
 	{
-		let default_glyph = self.default_glyph.as_ref().map(|ch| self.glyphs.get(ch).expect(&format!("Atlas::text: Atlas does not contain \'{}\'.", ch)));
 		struct Line<'a>
 		{
 			words: Vec<Vec<&'a Glyph>>,
@@ -140,22 +142,22 @@ impl Atlas
 				let word: Vec<_> = word.chars().map(|ch| match self.glyphs.get(&ch)
 				{
 					Some(glyph) => glyph,
-					None => match default_glyph
+					None => match &self.default_glyph
 					{
 						Some(glyph) => glyph,
 						None => panic!("Atlas::text: Atlas does not contain \'{}\'.", ch)
 					}
 				}).collect();
 				let word_length: f32 = word.iter().map(|glyph| glyph.h_advance).sum();
-				if line.words.len() > 0 && base_x + self.space + word_length > width
+				if layout.auto_wrap && line.words.len() > 0 && base_x + self.space + word_length > layout.width
 				{
-					let margin = width - base_x;
-					match align
+					let margin = layout.width - base_x;
+					match layout.align
 					{
 						Align::Left => {},
 						Align::Right => line.offset = margin,
 						Align::Center => line.offset = margin / 2.0,
-						Align::Block => line.space = (width - line_length) / (line.words.len() - 1).max(1) as f32
+						Align::Block => line.space = (layout.width - line_length) / (line.words.len() - 1).max(1) as f32
 					};
 					lines.push(line);
 					line = Line { words: Vec::new(), offset: 0.0, space: self.space };
@@ -168,8 +170,8 @@ impl Atlas
 			}
 			if line.words.len() > 0
 			{
-				let margin = width - base_x;
-				match align
+				let margin = layout.width - base_x;
+				match layout.align
 				{
 					Align::Left => {},
 					Align::Right => line.offset = margin,
@@ -182,10 +184,10 @@ impl Atlas
 
 		let mut base_index = 0;
 		let mut base_y = self.ascent;
-		for line in lines
+		for line in &lines
 		{
 			let mut base_x = line.offset;
-			for word in line.words
+			for word in &line.words
 			{
 				for glyph in word
 				{
@@ -197,7 +199,7 @@ impl Atlas
 					index(base_index + 0);
 					base_index += 4;
 
-					let layer = glyph.layer as f32;
+					let layer = glyph.layer;
 					let (coords_x_min, coords_y_min) = glyph.coords_min;
 					let (coords_x_max, coords_y_max) = glyph.coords_max;
 					let (pos_x_min, pos_y_min) = glyph.pos_min;
@@ -216,31 +218,49 @@ impl Atlas
 		{
 			index_count: base_index / 4 * 6,
 			vertex_count: base_index,
-			line_count: (base_y - self.ascent).round() as u32
+			line_count: lines.len() as u32
 		}
+	}
+
+	pub fn width(&self, text: &str) -> f32
+	{
+		text.chars().map(|ch|
+		{
+			if ch == ' ' { self.space }
+			else
+			{
+				match self.glyphs.get(&ch)
+				{
+					Some(glyph) => glyph.h_advance,
+					None => match &self.default_glyph
+					{
+						Some(glyph) => glyph.h_advance,
+						None => panic!("Atlas::text: Atlas does not contain \'{}\'.", ch)
+					}
+				}
+			}
+		}).sum()
 	}
 
 	pub fn default(&mut self, glyph: Option<char>)
 	{
-		self.default_glyph = glyph;
+		self.default_glyph = glyph.as_ref().map(|ch| self.glyphs.get(ch).expect(&format!("Atlas::text: Atlas does not contain \'{}\'.", ch)).clone());
 	}
 }
 
-pub struct AtlasBuilder<'a>
+pub struct AtlasBuilder<'a, const N: usize>
 {
 	font: FontRef<'a>,
-	resolution: f32,
 	texture_size: u32,
 	padding: u32,
-	coords_norm: f32,
-	pos_norm: f32,
 	p0: (u32, u32),
 	row_height: u32,
 	layers: Vec<Vec<u8>>,
-	atlas: Atlas
+	coords_norm: f32,
+	atlases: [(f32, Atlas); N]
 }
 
-impl<'a> AtlasBuilder<'a>
+impl<'a, const N: usize> AtlasBuilder<'a, N>
 {
 	fn new_layer(layers: &mut Vec<Vec<u8>>, texture_size: u32)
 	{
@@ -249,47 +269,59 @@ impl<'a> AtlasBuilder<'a>
 		layers.push(layer);
 	}
 
-	pub fn new(font: Font<'a>, resolution: f32, texture_size: u32, padding: u32) -> Self
+	//scale = screen_scale_factor * text_pixel_height = pixel_height for standard display
+	pub fn new(font: Font<'a>, scales: [f32; N], texture_size: u32, padding: u32) -> Self
 	{
-		use ab_glyph::Font;
-		let font_scaled = font.font.as_scaled(resolution);
-		let coords_norm = 1.0 / texture_size as f32;
-		let pos_norm = 1.0 / (font_scaled.height() + font_scaled.line_gap());
-		let ascent = font_scaled.ascent() * pos_norm;
-		let space = font_scaled.h_advance(font_scaled.glyph_id(' ')) * pos_norm;
 		let mut layers = Vec::new();
 		Self::new_layer(&mut layers, texture_size);
+		let coords_norm = 1.0 / texture_size as f32;
+		let atlases = scales.map(|scale|
+		{
+			use ab_glyph::Font;
+			//https://docs.rs/ab_glyph/0.2.11/ab_glyph/trait.Font.html#units
+			let px_per_em = scale * (96.0 / 72.0);
+			let height = font.font.height_unscaled();
+			let units_per_em = font.font.units_per_em().unwrap();
+			let scale = px_per_em * height / units_per_em;
+			//init metrics
+			let font_scaled = font.font.as_scaled(scale);
+			
+			let ascent = font_scaled.ascent() / scale;
+			let space = font_scaled.h_advance(font_scaled.glyph_id(' ')) / scale;
+			let atlas = Atlas { glyphs: AHashMap::new(), ascent, space, default_glyph: None };
+			(scale, atlas)
+		});
 		Self
 		{
 			font: font.font,
-			resolution,
 			texture_size,
 			padding,
-			coords_norm,
-			pos_norm,
 			p0: (0, 0),
 			row_height: 0,
 			layers,
-			atlas: Atlas
-			{
-				glyphs: AHashMap::new(),
-				ascent,
-				space,
-				default_glyph: None
-			}
+			coords_norm,
+			atlases
 		}
 	}
 
-	pub fn add<I: IntoIterator<Item = char>>(&mut self, chars: I)
+	pub fn add<I: IntoIterator<Item = char>>(&mut self, i: usize, chars: I) -> bool
 	{
 		use ab_glyph::Font;
-		let font = self.font.as_scaled(self.resolution);
-		let mut chars: Vec<_> = chars.into_iter().map(|ch|
-		{
-			let glyph = self.font.outline_glyph(font.scaled_glyph(ch)).expect(&format!("Atlas::new: Font does not contain \'{}\'.", ch));
-			let bounds = glyph.px_bounds();
-			(ch, glyph, bounds)
-		}).collect();
+		let (scale, atlas) = &mut self.atlases[i];
+		let font = self.font.as_scaled(*scale);
+		let chars: ahash::AHashSet<_> = chars
+			.into_iter()
+			.filter(|ch| !atlas.contains(*ch))
+			.collect();
+		if chars.len() == 0 { return false; }
+		let mut chars: Vec<_> = chars.into_iter()
+			.map(|ch|
+			{
+				let glyph = self.font.outline_glyph(font.scaled_glyph(ch)).expect(&format!("Atlas::new: Font does not contain \'{}\'.", ch));
+				let bounds = glyph.px_bounds();
+				(ch, glyph, bounds)
+			})
+			.collect();
 		 //improve packaging
 		chars.sort_by(|(_, _, b1), (_, _, b2)| (b1.height() as u32).cmp(&(b2.height() as u32)));
 		let mut i0 = 0;
@@ -328,13 +360,14 @@ impl<'a> AtlasBuilder<'a>
 				coords_min: ((*x0 as f32 - 0.5) * self.coords_norm, (*y0 as f32 - 0.5) * self.coords_norm),
 				coords_max: ((*x0 as f32 + bounds.width() + 0.5) * self.coords_norm, (*y0 as f32 + bounds.height() + 0.5) * self.coords_norm),
 				layer: layer as u32,
-				pos_min: (bounds.min.x * self.pos_norm, bounds.min.y * self.pos_norm),
-				pos_max: (bounds.max.x * self.pos_norm, bounds.max.y * self.pos_norm),
-				h_advance: font.h_advance(glyph.glyph().id) * self.pos_norm
+				pos_min: (bounds.min.x / *scale, bounds.min.y / *scale),
+				pos_max: (bounds.max.x / *scale, bounds.max.y / *scale),
+				h_advance: font.h_advance(glyph.glyph().id) / *scale
 			};
-			self.atlas.glyphs.insert(ch, glyph);
+			atlas.glyphs.insert(ch, glyph);
 			*x0 += bounds.width() as u32 + self.padding;
 		}
+		true
 	}
 
 	pub fn bitmap(&self) -> &Vec<Vec<u8>>
@@ -342,9 +375,14 @@ impl<'a> AtlasBuilder<'a>
 		&self.layers
 	}
 
-	pub fn atlas(&self) -> &Atlas
+	pub fn atlas(&self, i: usize) -> &Atlas
 	{
-		&self.atlas
+		&self.atlases[i].1
+	}
+
+	pub fn atlas_mut(&mut self, i: usize) -> &mut Atlas
+	{
+		&mut self.atlases[i].1
 	}
 
 	pub fn into_font(self) -> Font<'a>
@@ -352,13 +390,13 @@ impl<'a> AtlasBuilder<'a>
 		Font { font: self.font }
 	}
 
-	pub fn finish(self) -> (Vec<Vec<u8>>, Atlas)
+	pub fn finish(self) -> (Vec<Vec<u8>>, [Atlas; N])
 	{
-		(self.layers, self.atlas)
+		(self.layers, self.atlases.map(|(_, atlas)| atlas))
 	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Align
 {
@@ -368,6 +406,16 @@ pub enum Align
 	Block
 }
 
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Layout
+{
+	pub width: f32,
+	pub align: Align,
+	pub auto_wrap: bool
+}
+
+#[derive(Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TextData
 {

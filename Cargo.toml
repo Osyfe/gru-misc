@@ -8,23 +8,23 @@ authors = ["Jannik Fehre"]
 edition = "2021"
 
 [features]
+math = ["static_assertions"]
+text = ["ab_glyph", "ahash"]
+paint = ["text", "math"]
+ui = ["gru-ui-derive", "paint"]
+time = ["spin_sleep"]
+rand = ["rand_raw", "rand_xoshiro", "rand_distr"]
 color = []
 io = []
-time = ["spin_sleep"]
-text = ["ab_glyph", "ahash"]
-math = ["static_assertions"]
-rand = ["rand_raw", "rand_xoshiro", "rand_distr"]
-ui = ["gru-ui-derive", "text", "math"]
-full = ["color", "io", "time", "text", "math", "rand"]
 serde_impl = ["serde", "ahash/serde"]
 
 [dependencies]
-spin_sleep = { version = "1.0.0", optional = true }
+static_assertions = { version = "1.1.0", optional = true }
 ab_glyph = { version = "0.2.11", optional = true }
 ahash = { version = "0.7.5", optional = true }
-serde = { version = "1.0.129", default-features = false, features = ["derive", "std"], optional = true }
+gru-ui-derive = { path = "gru-ui-derive", optional = true }
+spin_sleep = { version = "1.0.0", optional = true }
 rand_raw = { package = "rand", version = "0.8.4", default-features = false, optional = true }
 rand_xoshiro = { version = "0.6.0", optional = true }
 rand_distr = { version = "0.4.1", default-features = false, features = ["std_math"], optional = true }
-static_assertions = { version = "1.1.0", optional = true }
-gru-ui-derive = { path = "gru-ui-derive", optional = true }
+serde = { version = "1.0.129", default-features = false, features = ["derive", "std"], optional = true }

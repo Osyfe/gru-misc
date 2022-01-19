@@ -7,6 +7,7 @@ pub fn lens_derive(input: TokenStream) -> TokenStream
 {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
     let name = &input.ident;
+    let generics = &input.generics;
     let mut lenses = quote::quote!();
     if let syn::Data::Struct(data) = input.data
     {
@@ -16,29 +17,31 @@ pub fn lens_derive(input: TokenStream) -> TokenStream
             {
                 if let Some(attribute) = field.ident
                 {
-                    let lens = quote::format_ident!("{}_{}_{}", "Lens", attribute, name);
+                    let lens = quote::format_ident!("{}_{}_{}", "Lens", name, attribute);
                     let ty = field.ty;
                     lenses.extend(quote::quote!
                     (
+                        #[allow(non_camel_case_types)]
                         pub struct #lens;
 
-                        impl Lens<#name, #ty> for #lens
+                        impl#generics Lens<#name#generics, #ty> for #lens
                         {
                             #[inline]
-                            fn with<A, F: FnOnce(&#ty) -> A>(&self, data: &#name, f: F) -> A
+                            fn with<A, F: FnOnce(&#ty) -> A>(&self, data: &#name#generics, f: F) -> A
                             {
                                 f(&data.#attribute)
                             }
 
                             #[inline]
-                            fn with_mut<A, F: FnOnce(&mut #ty) -> A>(&self, data: &mut #name, f: F) -> A
+                            fn with_mut<A, F: FnOnce(&mut #ty) -> A>(&mut self, data: &mut #name#generics, f: F) -> A
                             {
                                 f(&mut data.#attribute)
                             }
                         }
 
-                        impl #name
+                        impl#generics #name#generics
                         {
+                            #[allow(non_upper_case_globals)]
                             pub const #attribute: #lens = #lens;
                         }
                     ));

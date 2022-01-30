@@ -1,4 +1,4 @@
-use super::{Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::EventPod, paint::{Vec2, Rect}};
+use super::{Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::{EventPod, MouseButton}, paint::{Vec2, Rect}};
 use std::marker::PhantomData;
 
 pub trait LensExt<U, T>: Lens<U, T> + Sized
@@ -32,6 +32,12 @@ impl<U, T, W: Widget<T>, L: Lens<U, T>> LensWrap<U, T, W, L>
 impl<U, T, W: Widget<T>, L: Lens<U, T>> Widget<U> for LensWrap<U, T, W, L>
 {
     #[inline]
+    fn update(&mut self, data: &U) -> bool
+    {
+        self.lens.with(data, |data| self.inner.update(data))
+    }
+
+    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut U, event: &mut EventPod)
     {
         self.lens.with_mut(data, |data| self.inner.event(ctx, data, event))
@@ -44,9 +50,15 @@ impl<U, T, W: Widget<T>, L: Lens<U, T>> Widget<U> for LensWrap<U, T, W, L>
     }
 
     #[inline]
-    fn paint(&self, ctx: &mut PaintCtx, data: &U, size: Vec2)
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &U, size: Vec2) -> Vec2
     {
-        self.lens.with(data, |data| self.inner.paint(ctx, data, size));
+        self.lens.with(data, |data| self.inner.paint(ctx, data, size))
+    }
+
+    #[inline]
+    fn response(&mut self, data: &mut U, button: Option<MouseButton>) -> bool
+    {
+        self.lens.with_mut(data, |data| self.inner.response(data, button))
     }
 }
 

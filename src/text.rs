@@ -311,10 +311,11 @@ impl<'a, const N: usize> AtlasBuilder<'a, N>
 		let font = self.font.as_scaled(*scale);
 		let chars: ahash::AHashSet<_> = chars
 			.into_iter()
-			.filter(|ch| !atlas.contains(*ch))
+			.filter(|ch| *ch != ' ' && !atlas.contains(*ch))
 			.collect();
 		if chars.len() == 0 { return false; }
-		let mut chars: Vec<_> = chars.into_iter()
+		let mut chars: Vec<_> = chars
+			.into_iter()
 			.map(|ch|
 			{
 				let glyph = self.font.outline_glyph(font.scaled_glyph(ch)).expect(&format!("Atlas::new: Font does not contain \'{}\'.", ch));

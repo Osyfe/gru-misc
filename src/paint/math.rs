@@ -23,12 +23,6 @@ impl Rect
     }
 
     #[inline]
-    pub fn new_size_origin(size: Vec2) -> Self
-    {
-        Self { min: Vec2(0.0, 0.0), max: size }
-    }
-
-    #[inline]
     pub fn size(self) -> Vec2
     {
         self.max - self.min

@@ -2,7 +2,7 @@ use super::*;
 
 pub struct Flex<'a, T, const ROW: bool>
 {
-    widgets: Vec<WidgetBox<'a, T>>,
+    widgets: Vec<WidgetBoxP<'a, T>>,
     padding: f32,
     primary_align: LayoutAlign,
     secondary_align: LayoutAlign
@@ -10,15 +10,25 @@ pub struct Flex<'a, T, const ROW: bool>
 
 impl<'a, T, const ROW: bool> Widget<T> for Flex<'a, T, ROW>
 {
-    fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod)
+    fn update(&mut self, data: &T) -> bool
     {
+        self.widgets.iter_mut().map(|pod| pod.widget.update(data)).any(std::convert::identity)
+    }
 
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
+    {
+        for WidgetPodP { widget, pos: w_pos, .. } in &mut self.widgets
+        {
+            event.event.offset(-*w_pos);
+            widget.event(ctx, data, event);
+            event.event.offset(*w_pos);
+        }
     }
 
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
     {
         let mut size = Vec2(0.0, 0.0);
-        for WidgetBox { widget, size: w_size, .. } in &mut self.widgets
+        for WidgetPodP { widget, size: w_size, .. } in &mut self.widgets
         {
             let max =
                 if ROW { Vec2(constraints.max.0 - size.0, constraints.max.1) }
@@ -58,7 +68,7 @@ impl<'a, T, const ROW: bool> Widget<T> for Flex<'a, T, ROW>
             size.1 = (pad_front + self.padding).max(0.0);
         }
         let secondary_size = if ROW { size.1 } else { size.0 };
-        for WidgetPod { pos: w_pos, size: w_size, .. } in &mut self.widgets
+        for WidgetPodP { pos: w_pos, size: w_size, .. } in &mut self.widgets
         {
             *w_pos = Vec2(0.0, 0.0);
             let (w_secondary_pos, w_secondary_size) = if ROW { (&mut w_pos.1, &mut w_size.1) } else { (&mut w_pos.0, &mut w_size.0) };
@@ -84,14 +94,15 @@ impl<'a, T, const ROW: bool> Widget<T> for Flex<'a, T, ROW>
         size
     }
 
-    fn paint(&self, ctx: &mut PaintCtx, data: &T, _: Vec2)
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        for WidgetPod { widget, pos: w_pos, size: w_size, .. } in &self.widgets
+        for WidgetPodP { widget, pos: w_pos, size: w_size, .. } in &mut self.widgets
         {
             ctx.painter.add_offset(*w_pos);
             widget.paint(ctx, data, *w_size);
             ctx.painter.add_offset(-*w_pos);
         }
+        size
     }
 }
 
@@ -104,7 +115,7 @@ impl<'a, T, const ROW: bool> Flex<'a, T, ROW>
 
     pub fn add<W: Widget<T> + 'a>(&mut self, widget: W)
     {
-        self.widgets.push(WidgetPod::new(Box::new(widget)));
+        self.widgets.push(WidgetPodP::new(Box::new(widget)));
     }
 
     pub fn with<W: Widget<T> + 'a>(mut self, widget: W) -> Self

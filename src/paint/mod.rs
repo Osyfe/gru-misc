@@ -44,6 +44,7 @@ pub struct Vertex
 
 pub struct Frame<'a>
 {
+    pub new: bool,
     pub vertices: &'a [Vertex],
     pub indices: &'a [u16],
     pub font_version: u64,
@@ -57,7 +58,8 @@ pub struct Painter<'a>
     origin: Vec2,
     scale: f32,
     vertices: Vec<Vertex>,
-    indices: Vec<u16>
+    indices: Vec<u16>,
+    new: bool
 }
 
 impl<'a> Painter<'a>
@@ -82,7 +84,8 @@ impl<'a> Painter<'a>
             origin: Vec2(0.0, 0.0),
             scale: 1.0,
             vertices: Vec::new(),
-            indices: Vec::new()
+            indices: Vec::new(),
+            new: true
         }
     }
 
@@ -123,18 +126,21 @@ impl<'a> Painter<'a>
         );
     }
 
-    pub fn begin_frame(&mut self, scale: f32)
+    pub fn clear_frame(&mut self, scale: f32)
     {
         if self.scale != scale { self.text = Some(Self::atlas_builder(self.text.take().unwrap().into_font(), scale)); }
         self.origin = Vec2(0.0, 0.0);
         self.scale = scale;
         self.vertices.clear();
         self.indices.clear();
+        self.new = true;
     }
 
-    pub fn end_frame(&mut self) -> Frame
+    pub fn get_frame(&mut self) -> Frame
     {
-        Frame { vertices: &self.vertices, indices: &self.indices, font_version: self.text_version, font_data: self.text.as_ref().unwrap().bitmap() }
+        let new = self.new;
+        self.new = false;
+        Frame { new, vertices: &self.vertices, indices: &self.indices, font_version: self.text_version, font_data: self.text.as_ref().unwrap().bitmap() }
     }
 
     pub fn text_width(&self, text: &str, size: TextSize) -> f32

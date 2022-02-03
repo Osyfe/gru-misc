@@ -1,4 +1,4 @@
-use super::{Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, paint::{TextSize, Vec2, Rect}};
+use super::{Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, paint::{TextSize, Vec2, Rect}, WidgetPod};
 use crate::text::Align;
 use std::marker::PhantomData;
 use std::borrow::Borrow;
@@ -43,48 +43,57 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn fix(self, size: Vec2) -> layout::Fix<T, Self> { layout::Fix::new(self, size) }
     fn align(self, width: LayoutAlign, height: LayoutAlign) -> layout::Align<T, Self> { layout::Align::new(self, width, height) }
     fn padding(self, padding: Vec2) -> layout::Padding<T, Self> { layout::Padding::new(self, padding) }
-    fn update(self) -> interact::Update<T, Self> where T: Clone + PartialEq { interact::Update::new(self) }
+    fn bg(self) -> Bg<T, Self> { Bg::new(self) }
+    fn watch(self) -> interact::Watch<T, Self> where T: Clone + PartialEq { interact::Watch::new(self) }
     fn response<'a>(self, action: Option<Box<dyn FnMut() + 'a>>) -> interact::Response<'a, T, Self> where Self: 'a { interact::Response::new(self, action) }
 }
 
 impl<T, W: Widget<T> + Sized> WidgetExt<T> for W {}
 
-pub struct Square<T>
+pub struct Bg<T, W: Widget<T>>
 {
-    _phantom: PhantomData<T>
+    inner: WidgetPod<T, W>
 }
 
-impl<T> Square<T>
+impl<T, W: Widget<T>> Bg<T, W>
 {
-    pub fn new() -> Self
+    pub fn new(widget: W) -> Self
     {
-        Self { _phantom: PhantomData }
+        Self { inner: WidgetPod::new(widget) }
     }
 }
 
-impl<T> Widget<T> for Square<T>
+impl<T, W: Widget<T>> Widget<T> for Bg<T, W>
 {
-    fn update(&mut self, _: &T) -> bool
+    #[inline]
+    fn update(&mut self, data: &T) -> bool
     {
-        false
+        self.inner.widget.update(data)
     }
 
-    fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod) { }
-
-    fn layout(&mut self, _: &mut LayoutCtx, _: &T, _: Rect) -> Vec2
+    #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
-        Vec2(1.0, 1.0)
+        self.inner.widget.event(ctx, data, event);
     }
 
-    fn paint(&mut self, ctx: &mut PaintCtx, _: &T, size: Vec2) -> Vec2
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
+    {
+        self.inner.widget.layout(ctx, data, constraints)
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
         let color = match ctx.state
         {
-            WidgetState::Cold => (0.0, 0.0, 0.0, 1.0),
-            WidgetState::Hot => (0.3, 0.0, 0.0, 1.0),
-            WidgetState::Hover => (0.0, 0.0, 0.3, 1.0)
+            WidgetState::Cold => (0.3, 0.3, 0.3, 1.0),
+            WidgetState::Hot => (0.5, 0.3, 0.3, 1.0),
+            WidgetState::Hover => (0.3, 0.3, 0.5, 1.0)
         };
         ctx.painter.draw_rect(Rect::new_origin(size), color);
+        self.inner.widget.paint(ctx, data, size);
         size
     }
 }
@@ -109,13 +118,16 @@ impl<S: Borrow<str>, T> Label<S, T>
 
 impl<S: Borrow<str>, T> Widget<T> for Label<S, T>
 {
+    #[inline]
     fn update(&mut self, _: &T) -> bool
     {
         false
     }
 
+    #[inline]
     fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod) { }
 
+    #[inline]
     fn layout(&mut self, ctx: &mut LayoutCtx, _: &T, _: Rect) -> Vec2
     {
         let width = ctx.text_width(self.text.borrow(), self.text_size);
@@ -124,6 +136,7 @@ impl<S: Borrow<str>, T> Widget<T> for Label<S, T>
         self.size
     }
 
+    #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, _: &T, size: Vec2) -> Vec2
     {
         ctx.painter.draw_text(Rect::new_origin(size), self.text.borrow(), self.text_size, self.align, false, (0.0, 0.0, 0.0, 1.0));
@@ -135,18 +148,22 @@ pub struct Check;
 
 impl Widget<bool> for Check
 {
+    #[inline]
     fn update(&mut self, _: &bool) -> bool
     {
         false
     }
 
+    #[inline]
     fn event(&mut self, _: &mut EventCtx, _: &mut bool, _: &mut EventPod) { }
 
+    #[inline]
     fn layout(&mut self, _: &mut LayoutCtx, _: &bool, _: Rect) -> Vec2
     {
         Vec2(1.0, 1.0)
     }
 
+    #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, flag: &bool, _: Vec2)-> Vec2
     {
         let color = match ctx.state
@@ -161,6 +178,7 @@ impl Widget<bool> for Check
         Vec2(1.0, 1.0)
     }
 
+    #[inline]
     fn response(&mut self, flag: &mut bool, button: Option<MouseButton>) -> bool
     {
         if button == Some(MouseButton::Primary) { *flag = !*flag; true } else { false }
@@ -175,11 +193,13 @@ pub struct Edit
 
 impl Widget<String> for Edit
 {
+    #[inline]
     fn update(&mut self, _: &String) -> bool
     {
         false
     }
 
+    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut String, event: &mut EventPod)
     {
         if self.active && !event.used
@@ -209,12 +229,14 @@ impl Widget<String> for Edit
         }
     }
 
+    #[inline]
     fn layout(&mut self, _: &mut LayoutCtx, _: &String, size: Rect) -> Vec2
     {
         let height = TextSize::Normal.scale();
         Vec2(size.max.0, height)
     }
 
+    #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &String, size: Vec2) -> Vec2
     {
         let rect = Rect::new_origin(size);
@@ -224,6 +246,7 @@ impl Widget<String> for Edit
         size
     }
 
+    #[inline]
     fn response(&mut self, _: &mut String, button: Option<MouseButton>) -> bool
     {
         self.active = button.is_some();

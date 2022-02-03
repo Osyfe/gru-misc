@@ -108,13 +108,13 @@ impl<'a, T, W: Widget<T>> Response<'a, T, W>
     }
 }
 
-pub struct Update<T: Clone + PartialEq, W: Widget<T>>
+pub struct Watch<T: Clone + PartialEq, W: Widget<T>>
 {
     inner: WidgetPod<T, W>,
     copy: Option<T>
 }
 
-impl<T: Clone + PartialEq, W: Widget<T>> Widget<T> for Update<T, W>
+impl<T: Clone + PartialEq, W: Widget<T>> Widget<T> for Watch<T, W>
 {
     #[inline]
     fn update(&mut self, data: &T) -> bool
@@ -153,7 +153,7 @@ impl<T: Clone + PartialEq, W: Widget<T>> Widget<T> for Update<T, W>
     }
 }
 
-impl<T: Clone + PartialEq, W: Widget<T>> Update<T, W>
+impl<T: Clone + PartialEq, W: Widget<T>> Watch<T, W>
 {
     pub fn new(widget: W) -> Self
     {

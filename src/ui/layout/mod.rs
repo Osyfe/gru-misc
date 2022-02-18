@@ -12,7 +12,8 @@ pub enum LayoutAlign
     Front,
     Center,
     Back,
-    Fill
+    Fill,
+    FillPadding
 }
 
 pub struct Empty<T>
@@ -51,7 +52,8 @@ impl<T> Empty<T>
 pub struct Fix<T, W: Widget<T>>
 {
     inner: WidgetPod<T, W>,
-    should_size: Vec2,
+    width: Option<f32>,
+    height: Option<f32>
 }
 
 impl<T, W: Widget<T>> Widget<T> for Fix<T, W>
@@ -69,9 +71,19 @@ impl<T, W: Widget<T>> Widget<T> for Fix<T, W>
     }
 
     #[inline]
-    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, _: Rect) -> Vec2
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, mut constraints: Rect) -> Vec2
     {
-        self.inner.widget.layout(ctx, data, Rect::new_origin(self.should_size))
+        if let Some(width) = self.width
+        {
+            constraints.min.0 = width;
+            constraints.max.0 = width;
+        }
+        if let Some(height) = self.height
+        {
+            constraints.min.1 = height;
+            constraints.max.1 = height;
+        }
+        self.inner.widget.layout(ctx, data, constraints)
     }
 
     #[inline]
@@ -83,9 +95,9 @@ impl<T, W: Widget<T>> Widget<T> for Fix<T, W>
 
 impl<T, W: Widget<T>> Fix<T, W>
 {
-    pub fn new(widget: W, size: Vec2) -> Self
+    pub fn new(widget: W, width: Option<f32>, height: Option<f32>) -> Self
     {
-        Self { inner: WidgetPod::new(widget), should_size: size }
+        Self { inner: WidgetPod::new(widget), width, height }
     }
 }
 
@@ -123,13 +135,15 @@ impl<T, W: Widget<T>> Widget<T> for Align<T, W>
         {
             LayoutAlign::Front | LayoutAlign::Fill => 0.0,
             LayoutAlign::Center => margin.0 / 2.0,
-            LayoutAlign::Back => margin.0
+            LayoutAlign::Back => margin.0,
+            LayoutAlign::FillPadding => margin.0 / 4.0
         };
         self.inner.pos.1 = match self.height
         {
             LayoutAlign::Front | LayoutAlign::Fill => 0.0,
             LayoutAlign::Center => margin.1 / 2.0,
-            LayoutAlign::Back => margin.1
+            LayoutAlign::Back => margin.1,
+            LayoutAlign::FillPadding => margin.1 / 4.0
         };
         Vec2(self.inner.size.0.max(constraints.max.0), self.inner.size.1.max(constraints.max.1))
     }
@@ -138,7 +152,7 @@ impl<T, W: Widget<T>> Widget<T> for Align<T, W>
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
         ctx.painter.add_offset(self.inner.pos);
-        let size = self.inner.widget.paint(ctx, data, size);
+        let size = self.inner.widget.paint(ctx, data, size - self.inner.pos * 2.0);
         ctx.painter.add_offset(-self.inner.pos);
         size
     }
@@ -155,7 +169,8 @@ impl<T, W: Widget<T>> Align<T, W>
 pub struct Padding<T, W: Widget<T>>
 {
     inner: WidgetPodS<T, W>,
-    padding: Vec2
+    front: Vec2,
+    back: Vec2
 }
 
 impl<T, W: Widget<T>> Widget<T> for Padding<T, W>
@@ -169,32 +184,32 @@ impl<T, W: Widget<T>> Widget<T> for Padding<T, W>
     #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
-        event.event.offset(-self.padding);
+        event.event.offset(-self.front);
         self.inner.widget.event(ctx, data, event);
-        event.event.offset(self.padding);
+        event.event.offset(self.front);
     }
 
     #[inline]
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
     {
-        self.inner.size = self.inner.widget.layout(ctx, data, constraints - self.padding * 2.0);
-        self.inner.size + self.padding * 2.0
+        self.inner.size = self.inner.widget.layout(ctx, data, constraints - self.front - self.back);
+        self.inner.size + self.front + self.back
     }
 
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        ctx.painter.add_offset(self.padding);
-        let size = self.inner.widget.paint(ctx, data, size - self.padding * 2.0);
-        ctx.painter.add_offset(-self.padding);
-        size + self.padding * 2.0
+        ctx.painter.add_offset(self.front);
+        let size = self.inner.widget.paint(ctx, data, size - self.front - self.back);
+        ctx.painter.add_offset(-self.front);
+        size + self.front + self.back
     }
 }
 
 impl<T, W: Widget<T>> Padding<T, W>
 {
-    pub fn new(widget: W, padding: Vec2) -> Self
+    pub fn new(widget: W, front: Vec2, back: Vec2) -> Self
     {
-        Self { inner: WidgetPodS::new(widget), padding }
+        Self { inner: WidgetPodS::new(widget), front, back }
     }
 }

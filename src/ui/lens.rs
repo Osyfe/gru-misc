@@ -3,7 +3,6 @@ use std::marker::PhantomData;
 
 pub trait LensExt<U, T>: Lens<U, T> + Sized
 {
-    #[inline]
     fn chain<S, L2: Lens<T, S>>(self, lens2: L2) -> LensChain<U, T, S, Self, L2>
     {
         LensChain::new(self, lens2)
@@ -16,16 +15,14 @@ pub struct LensWrap<U, T, W: Widget<T>, L: Lens<U, T>>
 {
     inner: W,
     lens: L,
-    _phantom_u: PhantomData<U>,
-    _phantom_t: PhantomData<T>
+    _phantom: (PhantomData<U>, PhantomData<T>)
 }
 
 impl<U, T, W: Widget<T>, L: Lens<U, T>> LensWrap<U, T, W, L>
 {
-    #[inline]
     pub fn new(inner: W, lens: L) -> Self
     {
-        Self { inner, lens, _phantom_u: PhantomData, _phantom_t: PhantomData }
+        Self { inner, lens, _phantom: (PhantomData, PhantomData) }
     }
 }
 
@@ -66,9 +63,7 @@ pub struct LensChain<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>>
 {
     lens1: L1,
     lens2: L2,
-    _phantom_v: PhantomData<V>,
-    _phantom_u: PhantomData<U>,
-    _phantom_t: PhantomData<T>
+    _phantom: (PhantomData<V>, PhantomData<U>, PhantomData<T>)
 }
 
 impl<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>> LensChain<V, U, T, L1, L2>
@@ -76,7 +71,7 @@ impl<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>> LensChain<V, U, T, L1, L2>
     #[inline]
     pub fn new(lens1: L1, lens2: L2) -> Self
     {
-        Self { lens1, lens2, _phantom_v: PhantomData, _phantom_u: PhantomData, _phantom_t: PhantomData }
+        Self { lens1, lens2, _phantom: (PhantomData, PhantomData, PhantomData) }
     }
 }
 

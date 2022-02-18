@@ -1,7 +1,21 @@
 use super::{Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, paint::{TextSize, Vec2, Rect}, WidgetPod};
 use crate::text::Align;
-use std::marker::PhantomData;
-use std::borrow::Borrow;
+use std::{marker::PhantomData, borrow::Borrow};
+
+pub trait WidgetExt<T>: Widget<T> + Sized
+{
+    fn boxed<'a>(self) -> Box<dyn Widget<T> + 'a> where Self: 'a { Box::new(self) }
+    fn owning<U>(self, data: T) -> Owning<U, T, Self> { Owning::new(self, data) }
+    fn lens<U, L: Lens<U, T>>(self, lens: L) -> lens::LensWrap<U, T, Self, L> { lens::LensWrap::new(self, lens) }
+    fn fix(self, width: Option<f32>, height: Option<f32>) -> layout::Fix<T, Self> { layout::Fix::new(self, width, height) }
+    fn align(self, width: LayoutAlign, height: LayoutAlign) -> layout::Align<T, Self> { layout::Align::new(self, width, height) }
+    fn padding(self, front: Vec2, back: Vec2) -> layout::Padding<T, Self> { layout::Padding::new(self, front, back) }
+    fn bg(self) -> Bg<T, Self> { Bg::new(self) }
+    fn watch(self) -> interact::Watch<T, Self> where T: Clone + PartialEq { interact::Watch::new(self) }
+    fn response<'a>(self, action: Option<Box<dyn FnMut() + 'a>>) -> interact::Response<'a, T, Self> where Self: 'a { interact::Response::new(self, action) }
+}
+
+impl<T, W: Widget<T> + Sized> WidgetExt<T> for W {}
 
 impl<'a, T> Widget<T> for Box<dyn Widget<T> + 'a>
 {
@@ -36,19 +50,47 @@ impl<'a, T> Widget<T> for Box<dyn Widget<T> + 'a>
     }
 }
 
-pub trait WidgetExt<T>: Widget<T> + Sized
+pub struct Owning<U, T, W: Widget<T>>
 {
-    fn boxed<'a>(self) -> Box<dyn Widget<T> + 'a> where Self: 'a { Box::new(self) }
-    fn lens<U, L: Lens<U, T>>(self, lens: L) -> lens::LensWrap<U, T, Self, L> { lens::LensWrap::new(self, lens) }
-    fn fix(self, size: Vec2) -> layout::Fix<T, Self> { layout::Fix::new(self, size) }
-    fn align(self, width: LayoutAlign, height: LayoutAlign) -> layout::Align<T, Self> { layout::Align::new(self, width, height) }
-    fn padding(self, padding: Vec2) -> layout::Padding<T, Self> { layout::Padding::new(self, padding) }
-    fn bg(self) -> Bg<T, Self> { Bg::new(self) }
-    fn watch(self) -> interact::Watch<T, Self> where T: Clone + PartialEq { interact::Watch::new(self) }
-    fn response<'a>(self, action: Option<Box<dyn FnMut() + 'a>>) -> interact::Response<'a, T, Self> where Self: 'a { interact::Response::new(self, action) }
+    inner: WidgetPod<T, W>,
+    data: T,
+    _phantom: PhantomData<U>
 }
 
-impl<T, W: Widget<T> + Sized> WidgetExt<T> for W {}
+impl<U, T, W: Widget<T>> Widget<U> for Owning<U, T, W>
+{
+    #[inline]
+    fn update(&mut self, _: &U) -> bool
+    {
+        self.inner.widget.update(&self.data)
+    }
+
+    #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, _: &mut U, event: &mut EventPod)
+    {
+        self.inner.widget.event(ctx, &mut self.data, event)
+    }
+
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, _: &U, constraints: Rect) -> Vec2
+    {
+        self.inner.widget.layout(ctx, &self.data, constraints)
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, _: &U, size: Vec2) -> Vec2
+    {
+        self.inner.widget.paint(ctx, &self.data, size)
+    }
+}
+
+impl<U, T, W: Widget<T>> Owning<U, T, W>
+{
+    pub fn new(widget: W, data: T) -> Self
+    {
+        Self { inner: WidgetPod::new(widget), data, _phantom: PhantomData }
+    }
+}
 
 pub struct Bg<T, W: Widget<T>>
 {
@@ -98,25 +140,15 @@ impl<T, W: Widget<T>> Widget<T> for Bg<T, W>
     }
 }
 
-pub struct Label<S: Borrow<str>, T>
+pub struct Label<T: Borrow<str>>
 {
-    text: S,
     text_size: TextSize,
     size: Vec2,
     align: Align,
     _phantom: PhantomData<T>
 }
 
-impl<S: Borrow<str>, T> Label<S, T>
-{
-    pub fn new(text: S, size: TextSize, align: Align) -> Self
-    {
-        if align == Align::Block { panic!("Label::new: Labels cannot have a block align."); }
-        Self { text, text_size: size, size: Vec2(0.0, 0.0), align, _phantom: PhantomData }
-    }
-}
-
-impl<S: Borrow<str>, T> Widget<T> for Label<S, T>
+impl<T: Borrow<str>> Widget<T> for Label<T>
 {
     #[inline]
     fn update(&mut self, _: &T) -> bool
@@ -128,23 +160,35 @@ impl<S: Borrow<str>, T> Widget<T> for Label<S, T>
     fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod) { }
 
     #[inline]
-    fn layout(&mut self, ctx: &mut LayoutCtx, _: &T, _: Rect) -> Vec2
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, _: Rect) -> Vec2
     {
-        let width = ctx.text_width(self.text.borrow(), self.text_size);
+        let width = ctx.text_width(data.borrow(), self.text_size);
         let height = self.text_size.scale();
         self.size = Vec2(width, height);
         self.size
     }
 
     #[inline]
-    fn paint(&mut self, ctx: &mut PaintCtx, _: &T, size: Vec2) -> Vec2
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        ctx.painter.draw_text(Rect::new_origin(size), self.text.borrow(), self.text_size, self.align, false, (0.0, 0.0, 0.0, 1.0));
+        ctx.painter.draw_text(Rect::new_origin(size), data.borrow(), self.text_size, self.align, false, (0.0, 0.0, 0.0, 1.0));
         self.size
     }
 }
 
-pub struct Check;
+impl<T: Borrow<str>> Label<T>
+{
+    pub fn new(size: TextSize, align: Align) -> Self
+    {
+        if align == Align::Block { panic!("Label::new: Labels cannot have a block align."); }
+        Self { text_size: size, size: Vec2(0.0, 0.0), align, _phantom: PhantomData }
+    }
+}
+
+pub struct Check
+{
+    size: TextSize
+}
 
 impl Widget<bool> for Check
 {
@@ -160,22 +204,26 @@ impl Widget<bool> for Check
     #[inline]
     fn layout(&mut self, _: &mut LayoutCtx, _: &bool, _: Rect) -> Vec2
     {
-        Vec2(1.0, 1.0)
+        let size = self.size.scale();
+        Vec2(size, size)
     }
 
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, flag: &bool, _: Vec2)-> Vec2
     {
+        let size1 = self.size.scale();
+        let (size2, size3) = (size1 * 0.2, size1 * 0.6);
+        let (size4, size5) = (size1 * 0.3, size1 * 0.4);
         let color = match ctx.state
         {
             WidgetState::Cold => (0.0, 0.0, 0.0, 1.0),
             WidgetState::Hot => (0.3, 0.0, 0.0, 1.0),
             WidgetState::Hover => (0.0, 0.0, 0.3, 1.0)
         };
-        ctx.painter.draw_rect(Rect::new_origin(Vec2(1.0, 1.0)), color);
-        ctx.painter.draw_rect(Rect::new_size(Vec2(0.2, 0.2), Vec2(0.6, 0.6)), (0.8, 0.8, 0.8, 1.0));
-        if *flag { ctx.painter.draw_rect(Rect::new_size(Vec2(0.3, 0.3), Vec2(0.4, 0.4)), color); }
-        Vec2(1.0, 1.0)
+        ctx.painter.draw_rect(Rect::new_origin(Vec2(size1, size1)), color);
+        ctx.painter.draw_rect(Rect::new_size(Vec2(size2, size2), Vec2(size3, size3)), (0.8, 0.8, 0.8, 1.0));
+        if *flag { ctx.painter.draw_rect(Rect::new_size(Vec2(size4, size4), Vec2(size5, size5)), color); }
+        Vec2(size1, size1)
     }
 
     #[inline]
@@ -185,10 +233,19 @@ impl Widget<bool> for Check
     }
 }
 
+impl Check
+{
+    pub fn new(size: TextSize) -> Self
+    {
+        Self { size }
+    }
+}
+
 pub struct Edit
 {
+    size: TextSize,
     active: bool,
-    shift: bool
+    filter: Box<dyn FnMut(char) -> bool>
 }
 
 impl Widget<String> for Edit
@@ -204,27 +261,16 @@ impl Widget<String> for Edit
     {
         if self.active && !event.used
         {
-            if let Event::Key { key, pressed } = event.event
+            if let Event::Key { key, pressed: true } = event.event
             {
                 event.used = true;
                 match key
                 {
-                    Key::LShift | Key::RShift => self.shift = pressed,
-                    Key::Back => if pressed
-                    {
-                        data.pop();
-                        ctx.request_update();
-                    },
+                    Key::Char(ch) => if (self.filter)(ch) { data.push(ch); },
+                    Key::Back => { data.pop(); },
                     _ => {}
                 }
-                if pressed
-                {
-                    if let Some(ch) = key.ch(self.shift)
-                    {
-                        data.push(ch);
-                        ctx.request_update();
-                    }
-                }
+                ctx.request_update();
             }
         }
     }
@@ -232,7 +278,7 @@ impl Widget<String> for Edit
     #[inline]
     fn layout(&mut self, _: &mut LayoutCtx, _: &String, size: Rect) -> Vec2
     {
-        let height = TextSize::Normal.scale();
+        let height = self.size.scale();
         Vec2(size.max.0, height)
     }
 
@@ -242,22 +288,29 @@ impl Widget<String> for Edit
         let rect = Rect::new_origin(size);
         let color = if self.active { (0.0, 0.3, 0.3, 1.0) } else { (0.0, 0.0, 0.3, 1.0) };
         ctx.painter.draw_rect(rect, color);
-        ctx.painter.draw_text(Rect::new_origin(size), data, TextSize::Normal, Align::Left, false, (1.0, 1.0, 1.0, 1.0));
+        ctx.painter.draw_text(Rect::new_origin(size), data, self.size, Align::Left, false, (1.0, 1.0, 1.0, 1.0));
         size
     }
 
     #[inline]
-    fn response(&mut self, _: &mut String, button: Option<MouseButton>) -> bool
+    fn response(&mut self, data: &mut String, button: Option<MouseButton>) -> bool
     {
         self.active = button.is_some();
+        if let Some(MouseButton::Secondary) = button
+        {
+            use copypasta::{ClipboardContext, ClipboardProvider};
+            let mut ctx = ClipboardContext::new().unwrap();
+            for ch in ctx.get_contents().unwrap().chars().filter(|ch| (self.filter)(*ch)) { data.push(ch); }
+        }
         true
     }
 }
 
 impl Edit
 {
-    pub fn new() -> Self
+    pub fn new(size: TextSize, filter: Option<Box<dyn FnMut(char) -> bool>>) -> Self
     {
-        Self { active: true, shift: false }
+        let filter = filter.unwrap_or(Box::new(|_| true));
+        Self { size, active: false, filter }
     }
 }

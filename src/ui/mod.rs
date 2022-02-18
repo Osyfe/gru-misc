@@ -17,10 +17,19 @@ pub struct UiConfig
     pub display_scale_factor: f32
 }
 
+pub struct UiKey(usize);
+
+pub struct Query<'a>
+{
+    responses: &'a [interact::ResponseState],
+    update_requested: &'a mut bool
+}
+
 pub struct Frame<'a>
 {
-    pub events: std::vec::Drain<'a, event::EventPod>,
-    pub paint: paint::Frame<'a>
+    pub events: &'a mut [event::EventPod],
+    pub paint: paint::Frame<'a>,
+    pub query: Query<'a>
 }
 
 pub struct Ui<'a, T: 'a>
@@ -29,7 +38,7 @@ pub struct Ui<'a, T: 'a>
     config_fetch: fn(&T) -> UiConfig,
     events: Vec<event::EventPod>,
     painter: paint::Painter<'a>,
-    widgets: Vec<Box<dyn Widget<T> + 'a>>,
+    widgets: Vec<(Box<dyn Widget<T> + 'a>, fn(&T) -> bool, bool)>,
     responses: Vec<interact::ResponseState>,
     update_requested: bool
 }
@@ -50,9 +59,11 @@ impl<'a, T> Ui<'a, T>
         }
     }
 
-    pub fn add<W: Widget<T> + 'a>(&mut self, widget: W)
+    pub fn add<W: Widget<T> + 'a>(&mut self, widget: W, active: fn(&T) -> bool) -> UiKey
     {
-        self.widgets.push(Box::new(widget));
+        let key =  UiKey(self.widgets.len());
+        self.widgets.push((Box::new(widget), active, false));
+        key
     }
 
     pub fn register<'b, U, W: Widget<U>>(&mut self, mut response: interact::Response<'b, U, W>) -> (interact::Response<'b, U, W>, interact::ResponseKey)
@@ -61,11 +72,6 @@ impl<'a, T> Ui<'a, T>
         self.responses.push(interact::ResponseState::new());
         response.key = Some(key);
         (response, key)
-    }
-
-    pub fn query(&self, key: interact::ResponseKey) -> &interact::ResponseState
-    {
-        &self.responses[key.0]
     }
 
     pub fn request_update(&mut self)
@@ -82,14 +88,23 @@ impl<'a, T> Ui<'a, T>
         if old_config != self.config_current { self.update_requested = true; }
 
         for response in &mut self.responses { response.clicked = None; }
-        for widget in &mut self.widgets { if widget.update(data) { self.update_requested = true; } }
+        for (widget, active_fetch, active) in &mut self.widgets
+        {
+            let new_active = active_fetch(data);
+            if (*active != new_active) || (*active && widget.update(data)) { self.update_requested = true; }
+            *active = new_active;
+        }
 
+        self.events.clear();
         let mut ctx = EventCtx { update_requested: &mut self.update_requested, responses: &mut self.responses[..] };
         for event in events
         {
             let mut event = event::EventPod::new(event.clone());
             event.event.scale(1.0 / scale);
-            for widget in &mut self.widgets { widget.event(&mut ctx, data, &mut event); }
+            for (widget, _, active) in &mut self.widgets
+            {
+                if *active { widget.event(&mut ctx, data, &mut event); }
+            }
             event.event.scale(scale);
             self.events.push(event);
         }
@@ -99,18 +114,35 @@ impl<'a, T> Ui<'a, T>
             //println!("Updating UI: {:?}", std::time::Instant::now());
             self.update_requested = false;
             self.painter.clear_frame(scale);
-            for widget in &mut self.widgets
+            for (widget, _, active) in &mut self.widgets
             {
-                self.painter.set_offset(paint::Vec2(0.0, 0.0));
-                let mut ctx = LayoutCtx { painter: &self.painter };
-                let size = widget.layout(&mut ctx, data, paint::Rect { min: paint::Vec2(0.0, 0.0), max: paint::Vec2::from(self.config_current.size) / scale });
-                let mut ctx = PaintCtx { painter: &mut self.painter, state: WidgetState::Cold };
-                widget.paint(&mut ctx, data, size);
+                if *active
+                {
+                    self.painter.set_offset(paint::Vec2(0.0, 0.0));
+                    let mut ctx = LayoutCtx { painter: &mut self.painter };
+                    let size = widget.layout(&mut ctx, data, paint::Rect { min: paint::Vec2(0.0, 0.0), max: paint::Vec2::from(self.config_current.size) / scale });
+                    let mut ctx = PaintCtx { painter: &mut self.painter, state: WidgetState::Cold };
+                    widget.paint(&mut ctx, data, size);
+                }
             }
         }
 
         let paint = self.painter.get_frame();
-        Frame { events: self.events.drain(..), paint }
+        let query = Query { responses: &self.responses, update_requested: &mut self.update_requested };
+        Frame { events: &mut self.events, paint, query }
+    }
+}
+
+impl<'a> Query<'a>
+{
+    pub fn query(&self, key: interact::ResponseKey) -> &interact::ResponseState
+    {
+        &self.responses[key.0]
+    }
+
+    pub fn request_update(&mut self)
+    {
+        *self.update_requested = true;
     }
 }
 
@@ -140,7 +172,7 @@ impl<'a> EventCtx<'a>
 
 pub struct LayoutCtx<'a, 'b>
 {
-    painter: &'b paint::Painter<'a>
+    painter: &'b mut paint::Painter<'a>
 }
 
 impl<'a, 'b> LayoutCtx<'a, 'b>

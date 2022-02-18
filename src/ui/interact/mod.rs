@@ -40,6 +40,7 @@ impl<'a, T, W: Widget<T>> Widget<T> for Response<'a, T, W>
         let mut update = false;
         match event.event
         {
+            Event::PointerGone => self.state = WidgetState::Cold,
             Event::PointerMoved { pos } =>
             {
                 let hover = Rect::new_origin(self.inner.size).contains_linf(pos);
@@ -72,7 +73,7 @@ impl<'a, T, W: Widget<T>> Widget<T> for Response<'a, T, W>
                     if let Some(action) = &mut self.action { action(); }
                     if let Some(key) = self.key { ctx.responses[key.0].clicked = Some(button); }
                 }
-                if self.inner.widget.response(data, maybe_button) { update = true; }
+                if !pressed && self.inner.widget.response(data, maybe_button) { update = true; }
             },
             _ => {}
         }

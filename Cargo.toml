@@ -11,7 +11,7 @@ edition = "2021"
 math = ["static_assertions"]
 text = ["ab_glyph", "ahash"]
 paint = ["text", "math"]
-ui = ["gru-ui-derive", "paint"]
+ui = ["gru-ui-derive", "paint", "copypasta"]
 time = ["spin_sleep"]
 rand = ["rand_raw", "rand_xoshiro", "rand_distr"]
 color = []
@@ -23,6 +23,7 @@ static_assertions = { version = "1.1.0", optional = true }
 ab_glyph = { version = "0.2.11", optional = true }
 ahash = { version = "0.7.5", optional = true }
 gru-ui-derive = { path = "gru-ui-derive", optional = true }
+copypasta = { version = "0.7.1", optional = true }
 spin_sleep = { version = "1.0.0", optional = true }
 rand_raw = { package = "rand", version = "0.8.4", default-features = false, optional = true }
 rand_xoshiro = { version = "0.6.0", optional = true }

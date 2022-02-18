@@ -110,10 +110,10 @@ impl<'a> Painter<'a>
 
     pub fn draw_text(&mut self, rect: Rect, text: &str, size: TextSize, align: Align, auto_wrap: bool, color: (f32, f32, f32, f32))
     {
+        self.add_glyphs(text, size);
         let atlas_builder = self.text.as_mut().unwrap();
         let i = size.i();
         let size = TextSize::SIZES[i];
-        if atlas_builder.add(i, text.chars()) { self.text_version += 1; }
         let width = (rect.max.0 - rect.min.0) / size;
         let offset = self.origin + rect.min + Vec2(0.0, (rect.max.1 - rect.min.1 - size) / 2.0);
         let i0 = self.vertices.len() as u16;
@@ -143,8 +143,14 @@ impl<'a> Painter<'a>
         Frame { new, vertices: &self.vertices, indices: &self.indices, font_version: self.text_version, font_data: self.text.as_ref().unwrap().bitmap() }
     }
 
-    pub fn text_width(&self, text: &str, size: TextSize) -> f32
+    pub fn text_width(&mut self, text: &str, size: TextSize) -> f32
     {
+        self.add_glyphs(text, size);
         self.text.as_ref().unwrap().atlas(size.i()).width(text) * size.scale()
+    }
+
+    fn add_glyphs(&mut self, text: &str, size: TextSize)
+    {
+        if self.text.as_mut().unwrap().add(size.i(), text.chars()) { self.text_version += 1; }
     }
 }

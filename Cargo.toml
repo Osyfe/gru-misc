@@ -15,7 +15,6 @@ ui = ["gru-ui-derive", "paint", "copypasta"]
 time = ["spin_sleep"]
 rand = ["rand_raw", "rand_xoshiro", "rand_distr"]
 color = []
-io = []
 serde_impl = ["serde", "ahash/serde"]
 
 [dependencies]

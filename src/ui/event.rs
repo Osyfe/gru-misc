@@ -13,13 +13,14 @@ pub enum Key
 {
     Char(char),
     Back,
-    Escape
+    Escape,
+	Shift
 }
 
 #[derive(Clone, PartialEq)]
 pub enum Event
 {
-    PointerMoved { pos: Vec2 },
+    PointerMoved { pos: Vec2, delta: Vec2 },
     PointerClicked { pos: Vec2, button: MouseButton, pressed: bool },
     PointerGone,
     Key { key: Key, pressed: bool }
@@ -31,7 +32,11 @@ impl Event
     {
         match self
         {
-            Self::PointerMoved { pos } => *pos *= scale,
+            Self::PointerMoved { pos, delta } =>
+            {
+                *pos *= scale;
+                *delta *= scale;
+            },
             Self::PointerClicked { pos, .. } => *pos *= scale,
             _ => {}
         }
@@ -42,7 +47,7 @@ impl Event
     {
         match self
         {
-            Self::PointerMoved { pos } => *pos += offset,
+            Self::PointerMoved { pos, .. } => *pos += offset,
             Self::PointerClicked { pos, .. } => *pos += offset,
             _ => {}
         }

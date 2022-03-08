@@ -12,5 +12,3 @@ pub mod time;
 pub mod rand;
 #[cfg(feature = "color")]
 pub mod color;
-#[cfg(feature = "io")]
-pub mod io;

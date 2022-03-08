@@ -219,6 +219,18 @@ impl Rotor
 		let sin_red = if norm > DIV_CUT { phi_mod.sin() / norm } else { -0.5 + norm * norm / 48.0 };
 		Self { s: cos, yz: sin_red * axis.0, zx: sin_red * axis.1, xy: sin_red * axis.2 }
 	}
+	
+	#[inline]
+	pub fn from_plane(v1: Vec3, v2: Vec3) -> Self
+	{
+		let normal = v1.cross(v2);
+		let dot = v1.dot(v2);
+		let phi = dot.acos();
+		let phi_mod = -phi / 2.0;
+		let cos = phi_mod.cos();
+		let sin_red = -(1.0 / (2.0 * (1.0 + dot))).sqrt(); //diverges for v1 ~ -v2
+		Self { s: cos, yz: sin_red * normal.0, zx: sin_red * normal.1, xy: sin_red * normal.2 }
+	}
 
 	#[inline]
 	pub fn from_quaternion(x: f32, y: f32, z: f32, w: f32) -> Self

@@ -261,15 +261,16 @@ impl Widget<String> for Edit
     {
         if self.active && !event.used
         {
-            if let Event::Key { key, pressed: true } = event.event
+            if let Event::Char(ch) = event.event
             {
                 event.used = true;
-                match key
-                {
-                    Key::Char(ch) => if (self.filter)(ch) { data.push(ch); },
-                    Key::Back => { data.pop(); },
-                    _ => {}
-                }
+                if (self.filter)(ch) { data.push(ch); }
+                ctx.request_update();
+            }
+            if let Event::Key { key: Key::Back, pressed: true } = event.event
+            {
+                event.used;
+                data.pop();
                 ctx.request_update();
             }
         }

@@ -5,7 +5,8 @@ pub mod event;
 pub mod interact;
 
 use crate::{paint, text::Font};
-use std::marker::PhantomData;
+use std::{marker::PhantomData, hash::Hash, rc::Rc, cell::{RefCell, Ref}};
+use ahash::AHashMap;
 
 const DEFAULT_SCALE: f32 = 20.0;
 
@@ -19,31 +20,31 @@ pub struct UiConfig
 
 pub struct UiKey(usize);
 
-pub struct Query<'a>
+pub struct Query<'a, K: Hash + Eq>
 {
-    responses: &'a [interact::ResponseState],
+    responses: Ref<'a, AHashMap<K, interact::ResponseState>>,
     update_requested: &'a mut bool
 }
 
-pub struct Frame<'a>
+pub struct Frame<'a, K: Hash + Eq>
 {
     pub events: &'a mut [event::EventPod],
     pub paint: paint::Frame<'a>,
-    pub query: Query<'a>
+    pub query: Query<'a, K>
 }
 
-pub struct Ui<'a, T: 'a>
+pub struct Ui<'a, T: 'a, K: Hash + Eq>
 {
     config_current: UiConfig,
     config_fetch: fn(&T) -> UiConfig,
     events: Vec<event::EventPod>,
     painter: paint::Painter<'a>,
     widgets: Vec<(Box<dyn Widget<T> + 'a>, fn(&T) -> bool, bool)>,
-    responses: Vec<interact::ResponseState>,
+    responses: Rc<RefCell<AHashMap<K, interact::ResponseState>>>,
     update_requested: bool
 }
 
-impl<'a, T> Ui<'a, T>
+impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
 {
     pub fn new(font: Font<'a>, config: fn(&T) -> UiConfig) -> Self
     {
@@ -54,24 +55,21 @@ impl<'a, T> Ui<'a, T>
             events: Vec::new(),
             painter: paint::Painter::new(font),
             widgets: Vec::new(),
-            responses: Vec::new(),
+            responses: Rc::new(RefCell::new(AHashMap::new())),
             update_requested: true
         }
     }
 
-    pub fn add<W: Widget<T> + 'a>(&mut self, widget: W, active: fn(&T) -> bool) -> UiKey
+    pub fn add_box(&mut self, widget: Box<dyn Widget<T> + 'a>, active: fn(&T) -> bool) -> UiKey
     {
         let key =  UiKey(self.widgets.len());
-        self.widgets.push((Box::new(widget), active, false));
+        self.widgets.push((widget, active, false));
         key
     }
 
-    pub fn register<'b, U, W: Widget<U>>(&mut self, mut response: interact::Response<'b, U, W>) -> (interact::Response<'b, U, W>, interact::ResponseKey)
+    pub fn add<W: Widget<T> + 'a>(&mut self, widget: W, active: fn(&T) -> bool) -> UiKey
     {
-        let key = interact::ResponseKey(self.responses.len());
-        self.responses.push(interact::ResponseState::new());
-        response.key = Some(key);
-        (response, key)
+        self.add_box(Box::new(widget), active)
     }
 
     pub fn request_update(&mut self)
@@ -79,7 +77,7 @@ impl<'a, T> Ui<'a, T>
         self.update_requested = true;
     }
 
-    pub fn frame<'b>(&mut self, data: &mut T, events: impl Iterator<Item = &'b event::Event>) -> Frame
+    pub fn frame<'b>(&mut self, data: &mut T, events: impl Iterator<Item = &'b event::Event>) -> Frame<K>
     {
         let old_config = self.config_current.clone();
         self.config_current = (self.config_fetch)(data);
@@ -87,7 +85,7 @@ impl<'a, T> Ui<'a, T>
         let scale = self.config_current.scale * self.config_current.display_scale_factor;
         if old_config != self.config_current { self.update_requested = true; }
 
-        for response in &mut self.responses { response.clicked = None; }
+        for response in self.responses.borrow_mut().values_mut() { response.clicked = None; }
         for (widget, active_fetch, active) in &mut self.widgets
         {
             let new_active = active_fetch(data);
@@ -96,7 +94,7 @@ impl<'a, T> Ui<'a, T>
         }
 
         self.events.clear();
-        let mut ctx = EventCtx { update_requested: &mut self.update_requested, responses: &mut self.responses[..] };
+        let mut ctx = EventCtx { update_requested: &mut self.update_requested };
         for event in events
         {
             let mut event = event::EventPod::new(event.clone());
@@ -128,16 +126,16 @@ impl<'a, T> Ui<'a, T>
         }
 
         let paint = self.painter.get_frame();
-        let query = Query { responses: &self.responses, update_requested: &mut self.update_requested };
+        let query = Query { responses: self.responses.borrow(), update_requested: &mut self.update_requested };
         Frame { events: &mut self.events, paint, query }
     }
 }
 
-impl<'a> Query<'a>
+impl<'a, K: Hash + Eq> Query<'a, K>
 {
-    pub fn query(&self, key: interact::ResponseKey) -> &interact::ResponseState
+    pub fn query<Q: ?Sized + Hash + Eq>(&self, key: &Q) -> Option<&interact::ResponseState> where K: std::borrow::Borrow<Q>
     {
-        &self.responses[key.0]
+        self.responses.get(key)
     }
 
     pub fn request_update(&mut self)
@@ -157,8 +155,7 @@ pub trait Widget<T>
 
 pub struct EventCtx<'a>
 {
-    update_requested: &'a mut bool,
-    responses: &'a mut [interact::ResponseState]
+    update_requested: &'a mut bool
 }
 
 impl<'a> EventCtx<'a>

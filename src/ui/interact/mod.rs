@@ -1,4 +1,6 @@
-use super::{Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, event::{EventPod, Event, MouseButton}, paint::{Vec2, Rect}, WidgetPod, WidgetPodS};
+use super::{Ui, Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, event::{EventPod, Event, MouseButton}, paint::{Vec2, Rect}, WidgetPod, WidgetPodS};
+use std::{hash::Hash, rc::Rc, cell::RefCell};
+use ahash::AHashMap;
 
 pub struct ResponseState
 {
@@ -14,18 +16,16 @@ impl ResponseState
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct ResponseKey(pub(crate) usize);
-
-pub struct Response<'a, T, W: Widget<T>>
+pub struct Response<'a, T, W: Widget<T>, K: Hash + Eq>
 {
     inner: WidgetPodS<T, W>,
     state: WidgetState,
-    action: Option<Box<dyn FnMut() + 'a>>,
-    pub(crate) key: Option<ResponseKey>
+    map: Rc<RefCell<AHashMap<K, ResponseState>>>,
+    key: Option<K>,
+    action: Option<Box<dyn FnMut() + 'a>>
 }
 
-impl<'a, T, W: Widget<T>> Widget<T> for Response<'a, T, W>
+impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
 {
     #[inline]
     fn update(&mut self, data: &T) -> bool
@@ -71,7 +71,7 @@ impl<'a, T, W: Widget<T>> Widget<T> for Response<'a, T, W>
                     update = true;
                     maybe_button = Some(button);
                     if let Some(action) = &mut self.action { action(); }
-                    if let Some(key) = self.key { ctx.responses[key.0].clicked = Some(button); }
+                    if let Some(key) = &self.key { self.map.borrow_mut().get_mut(key).unwrap().clicked = Some(button); }
                 }
                 if !pressed && self.inner.widget.response(data, maybe_button) { update = true; }
             },
@@ -80,7 +80,7 @@ impl<'a, T, W: Widget<T>> Widget<T> for Response<'a, T, W>
         if update
         {
             ctx.request_update();
-            if let Some(key) = self.key { ctx.responses[key.0].state = self.state; }
+            if let Some(key) = &self.key { self.map.borrow_mut().get_mut(key).unwrap().state = self.state; }
         }
     }
 
@@ -101,11 +101,24 @@ impl<'a, T, W: Widget<T>> Widget<T> for Response<'a, T, W>
     }
 }
 
-impl<'a, T, W: Widget<T>> Response<'a, T, W>
+impl<'a, T, W: Widget<T>, K: Hash + Eq> Response<'a, T, W, K>
 {
-    pub fn new(widget: W, action: Option<Box<dyn FnMut() + 'a>>) -> Self
+    pub fn new<U>(widget: W, ui: &Ui<U, K>) -> Self
     {
-        Self { inner: WidgetPodS::new(widget), state: WidgetState::Cold, action, key: None }
+        Self { inner: WidgetPodS::new(widget), state: WidgetState::Cold, map: ui.responses.clone(), key: None, action: None }
+    }
+
+    pub fn query<L: ToOwned<Owned = K>>(mut self, key: L) -> Self
+    {
+        self.map.borrow_mut().insert(key.to_owned(), ResponseState::new());
+        self.key = Some(key.to_owned());
+        self
+    }
+
+    pub fn action(mut self, action: impl FnMut() + 'a) -> Self
+    {
+        self.action = Some(Box::new(action));
+        self
     }
 }
 

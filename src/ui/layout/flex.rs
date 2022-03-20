@@ -128,15 +128,26 @@ impl<'a, T, const ROW: bool> Flex<'a, T, ROW>
         Self { widgets: Vec::new(), padding, primary_align, secondary_align }        
     }
 
-    pub fn add<W: Widget<T> + 'a>(&mut self, widget: W)
+    pub fn add_box(&mut self, widget: Box<dyn Widget<T> + 'a>) -> &mut Self
     {
-        self.widgets.push(WidgetPodP::new(Box::new(widget)));
+        self.widgets.push(WidgetPodP::new(widget));
+        self
     }
 
-    pub fn with<W: Widget<T> + 'a>(mut self, widget: W) -> Self
+    pub fn with_box(mut self, widget: Box<dyn Widget<T> + 'a>) -> Self
     {
-        self.add(widget);
+        self.widgets.push(WidgetPodP::new(widget));
         self
+    }
+
+    pub fn add<W: Widget<T> + 'a>(&mut self, widget: W) -> &mut Self
+    {
+        self.add_box(Box::new(widget))
+    }
+
+    pub fn with<W: Widget<T> + 'a>(self, widget: W) -> Self
+    {
+        self.with_box(Box::new(widget))
     }
 }
 

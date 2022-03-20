@@ -1,6 +1,6 @@
-use super::{Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, paint::{TextSize, Vec2, Rect}, WidgetPod};
+use super::{Ui, Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, paint::{TextSize, Vec2, Rect}, WidgetPod};
 use crate::text::Align;
-use std::{marker::PhantomData, borrow::Borrow};
+use std::{marker::PhantomData, borrow::Borrow, hash::Hash};
 
 pub trait WidgetExt<T>: Widget<T> + Sized
 {
@@ -12,7 +12,7 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn padding(self, front: Vec2, back: Vec2) -> layout::Padding<T, Self> { layout::Padding::new(self, front, back) }
     fn bg(self) -> Bg<T, Self> { Bg::new(self) }
     fn watch(self) -> interact::Watch<T, Self> where T: Clone + PartialEq { interact::Watch::new(self) }
-    fn response<'a>(self, action: Option<Box<dyn FnMut() + 'a>>) -> interact::Response<'a, T, Self> where Self: 'a { interact::Response::new(self, action) }
+    fn response<'a, U, K: Hash + Eq>(self, ui: &Ui<U, K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, ui) }
 }
 
 impl<T, W: Widget<T> + Sized> WidgetExt<T> for W {}

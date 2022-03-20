@@ -108,7 +108,7 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Response<'a, T, W, K>
         Self { inner: WidgetPodS::new(widget), state: WidgetState::Cold, map: ui.responses.clone(), key: None, action: None }
     }
 
-    pub fn query<L: ToOwned<Owned = K>>(mut self, key: L) -> Self
+    pub fn query<L: ?Sized + ToOwned<Owned = K>>(mut self, key: &L) -> Self
     {
         self.map.borrow_mut().insert(key.to_owned(), ResponseState::new());
         self.key = Some(key.to_owned());

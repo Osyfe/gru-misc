@@ -8,7 +8,7 @@ pub struct Split<'a, T, const ROW: bool, const N: usize>
 
 impl<'a, T, const ROW: bool, const N: usize> Widget<T> for Split<'a, T, ROW, N>
 {
-    fn update(&mut self, data: &T) -> bool
+    fn update(&mut self, data: &mut T) -> bool
     {
         self.widgets.iter_mut().map(|pod| pod.widget.update(data)).any(std::convert::identity)
     }

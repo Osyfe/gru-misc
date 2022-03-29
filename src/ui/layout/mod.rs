@@ -23,7 +23,7 @@ pub struct Empty<T>
 
 impl<T> Widget<T> for Empty<T>
 {
-    fn update(&mut self, _: &T) -> bool
+    fn update(&mut self, _: &mut T) -> bool
     {
         false
     }
@@ -59,7 +59,7 @@ pub struct Fix<T, W: Widget<T>>
 impl<T, W: Widget<T>> Widget<T> for Fix<T, W>
 {
     #[inline]
-    fn update(&mut self, data: &T) -> bool
+    fn update(&mut self, data: &mut T) -> bool
     {
         self.inner.widget.update(data)
     }
@@ -111,7 +111,7 @@ pub struct Align<T, W: Widget<T>>
 impl<T, W: Widget<T>> Widget<T> for Align<T, W>
 {
     #[inline]
-    fn update(&mut self, data: &T) -> bool
+    fn update(&mut self, data: &mut T) -> bool
     {
         self.inner.widget.update(data)
     }
@@ -176,7 +176,7 @@ pub struct Padding<T, W: Widget<T>>
 impl<T, W: Widget<T>> Widget<T> for Padding<T, W>
 {
     #[inline]
-    fn update(&mut self, data: &T) -> bool
+    fn update(&mut self, data: &mut T) -> bool
     {
         self.inner.widget.update(data)
     }

@@ -1,4 +1,4 @@
-use super::{Ui, Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, event::{EventPod, Event, MouseButton}, paint::{Vec2, Rect}, WidgetPod, WidgetPodS};
+use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, event::{EventPod, Event, MouseButton}, paint::{Vec2, Rect}, WidgetPodS};
 use std::{hash::Hash, rc::Rc, cell::RefCell};
 use ahash::AHashMap;
 
@@ -28,7 +28,7 @@ pub struct Response<'a, T, W: Widget<T>, K: Hash + Eq>
 impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
 {
     #[inline]
-    fn update(&mut self, data: &T) -> bool
+    fn update(&mut self, data: &mut T) -> bool
     {
         self.inner.widget.update(data)
     }
@@ -103,9 +103,9 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
 
 impl<'a, T, W: Widget<T>, K: Hash + Eq> Response<'a, T, W, K>
 {
-    pub fn new<U>(widget: W, ui: &Ui<U, K>) -> Self
+    pub fn new(widget: W, register: &Register<K>) -> Self
     {
-        Self { inner: WidgetPodS::new(widget), state: WidgetState::Cold, map: ui.responses.clone(), key: None, action: None }
+        Self { inner: WidgetPodS::new(widget), state: WidgetState::Cold, map: register.0.clone(), key: None, action: None }
     }
 
     pub fn query<L: ?Sized + ToOwned<Owned = K>>(mut self, key: &L) -> Self
@@ -119,58 +119,5 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Response<'a, T, W, K>
     {
         self.action = Some(Box::new(action));
         self
-    }
-}
-
-pub struct Watch<T: Clone + PartialEq, W: Widget<T>>
-{
-    inner: WidgetPod<T, W>,
-    copy: Option<T>
-}
-
-impl<T: Clone + PartialEq, W: Widget<T>> Widget<T> for Watch<T, W>
-{
-    #[inline]
-    fn update(&mut self, data: &T) -> bool
-    {
-        let update = match &self.copy
-        {
-            None => true,
-            Some(copy) => data != copy
-        };
-        if update { self.copy = Some(data.clone()); }
-        update
-    }
-
-    #[inline]
-    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
-    {
-        self.inner.widget.event(ctx, data, event)
-    }
-
-    #[inline]
-    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, size: Rect) -> Vec2
-    {
-        self.inner.widget.layout(ctx, data, size)
-    }
-
-    #[inline]
-    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
-    {
-        self.inner.widget.paint(ctx, data, size)
-    }
-
-    #[inline]
-    fn response(&mut self, data: &mut T, button: Option<MouseButton>) -> bool
-    {
-        self.inner.widget.response(data, button)
-    }
-}
-
-impl<T: Clone + PartialEq, W: Widget<T>> Watch<T, W>
-{
-    pub fn new(widget: W) -> Self
-    {
-        Self { inner: WidgetPod::new(widget), copy: None }
     }
 }

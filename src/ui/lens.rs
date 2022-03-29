@@ -29,9 +29,9 @@ impl<U, T, W: Widget<T>, L: Lens<U, T>> LensWrap<U, T, W, L>
 impl<U, T, W: Widget<T>, L: Lens<U, T>> Widget<U> for LensWrap<U, T, W, L>
 {
     #[inline]
-    fn update(&mut self, data: &U) -> bool
+    fn update(&mut self, data: &mut U) -> bool
     {
-        self.lens.with(data, |data| self.inner.update(data))
+        self.lens.with_mut(data, |data| self.inner.update(data))
     }
 
     #[inline]

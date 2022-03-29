@@ -1,4 +1,4 @@
-use super::{Ui, Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, paint::{TextSize, Vec2, Rect}, WidgetPod};
+use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, dynamic, paint::{TextSize, Vec2, Rect}, WidgetPod};
 use crate::text::Align;
 use std::{marker::PhantomData, borrow::Borrow, hash::Hash};
 
@@ -11,16 +11,49 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn align(self, width: LayoutAlign, height: LayoutAlign) -> layout::Align<T, Self> { layout::Align::new(self, width, height) }
     fn padding(self, front: Vec2, back: Vec2) -> layout::Padding<T, Self> { layout::Padding::new(self, front, back) }
     fn bg(self) -> Bg<T, Self> { Bg::new(self) }
-    fn watch(self) -> interact::Watch<T, Self> where T: Clone + PartialEq { interact::Watch::new(self) }
-    fn response<'a, U, K: Hash + Eq>(self, ui: &Ui<U, K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, ui) }
+    fn watch(self) -> dynamic::Watch<T, Self> where T: Clone + PartialEq { dynamic::Watch::new(self) }
+    fn response<'a, K: Hash + Eq>(self, register: &Register<K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, register) }
 }
 
 impl<T, W: Widget<T> + Sized> WidgetExt<T> for W {}
 
+impl<T, W: Widget<T>> Widget<T> for Option<W>
+{
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.as_mut().map(|widget| widget.update(data)).unwrap_or(false)
+    }
+
+    #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
+    {
+        self.as_mut().map(|widget| widget.event(ctx, data, event));
+    }
+
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
+    {
+        self.as_mut().map(|widget| widget.layout(ctx, data, constraints)).unwrap_or(constraints.min)
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
+    {
+        self.as_mut().map(|widget| widget.paint(ctx, data, size)).unwrap_or(size)
+    }
+
+    #[inline]
+    fn response(&mut self, data: &mut T, button: Option<MouseButton>) -> bool
+    {
+        self.as_mut().map(|widget| widget.response(data, button)).unwrap_or(false)
+    }
+}
+
 impl<'a, T> Widget<T> for Box<dyn Widget<T> + 'a>
 {
     #[inline]
-    fn update(&mut self, data: &T) -> bool
+    fn update(&mut self, data: &mut T) -> bool
     {
         self.as_mut().update(data)
     }
@@ -60,9 +93,9 @@ pub struct Owning<U, T, W: Widget<T>>
 impl<U, T, W: Widget<T>> Widget<U> for Owning<U, T, W>
 {
     #[inline]
-    fn update(&mut self, _: &U) -> bool
+    fn update(&mut self, _: &mut U) -> bool
     {
-        self.inner.widget.update(&self.data)
+        self.inner.widget.update(&mut self.data)
     }
 
     #[inline]
@@ -108,7 +141,7 @@ impl<T, W: Widget<T>> Bg<T, W>
 impl<T, W: Widget<T>> Widget<T> for Bg<T, W>
 {
     #[inline]
-    fn update(&mut self, data: &T) -> bool
+    fn update(&mut self, data: &mut T) -> bool
     {
         self.inner.widget.update(data)
     }
@@ -151,7 +184,7 @@ pub struct Label<T: Borrow<str>>
 impl<T: Borrow<str>> Widget<T> for Label<T>
 {
     #[inline]
-    fn update(&mut self, _: &T) -> bool
+    fn update(&mut self, _: &mut T) -> bool
     {
         false
     }
@@ -193,7 +226,7 @@ pub struct Check
 impl Widget<bool> for Check
 {
     #[inline]
-    fn update(&mut self, _: &bool) -> bool
+    fn update(&mut self, _: &mut bool) -> bool
     {
         false
     }
@@ -251,7 +284,7 @@ pub struct Edit
 impl Widget<String> for Edit
 {
     #[inline]
-    fn update(&mut self, _: &String) -> bool
+    fn update(&mut self, _: &mut String) -> bool
     {
         false
     }

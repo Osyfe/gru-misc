@@ -3,6 +3,7 @@ pub mod lens;
 pub mod layout;
 pub mod event;
 pub mod interact;
+pub mod dynamic;
 
 use crate::{paint, text::Font};
 use std::{marker::PhantomData, hash::Hash, rc::Rc, cell::{RefCell, Ref}};
@@ -19,6 +20,8 @@ pub struct UiConfig
 }
 
 pub struct UiKey(usize);
+
+pub struct Register<'a, K: Hash + Eq>(&'a Rc<RefCell<AHashMap<K, interact::ResponseState>>>);
 
 pub struct Query<'a, K: Hash + Eq>
 {
@@ -70,6 +73,11 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
     pub fn add<W: Widget<T> + 'a>(&mut self, widget: W, active: fn(&T) -> bool) -> UiKey
     {
         self.add_box(Box::new(widget), active)
+    }
+
+    pub fn register(&self) -> Register<K>
+    {
+        Register(&self.responses)
     }
 
     pub fn request_update(&mut self)
@@ -146,7 +154,7 @@ impl<'a, K: Hash + Eq> Query<'a, K>
 
 pub trait Widget<T>
 {
-    fn update(&mut self, _: &T) -> bool;
+    fn update(&mut self, _: &mut T) -> bool;
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut event::EventPod);
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: paint::Rect) -> paint::Vec2;
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: paint::Vec2) -> paint::Vec2;

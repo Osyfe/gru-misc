@@ -10,7 +10,7 @@ pub struct Flex<'a, T, const ROW: bool>
 
 impl<'a, T, const ROW: bool> Widget<T> for Flex<'a, T, ROW>
 {
-    fn update(&mut self, data: &T) -> bool
+    fn update(&mut self, data: &mut T) -> bool
     {
         self.widgets.iter_mut().map(|pod| pod.widget.update(data)).any(std::convert::identity)
     }

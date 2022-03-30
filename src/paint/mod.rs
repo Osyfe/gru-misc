@@ -1,5 +1,6 @@
 mod math;
 pub use math::*;
+pub use crate::color::Color;
 
 use crate::text::{Font, AtlasBuilder, Align, Layout};
 
@@ -38,7 +39,7 @@ impl TextSize
 pub struct Vertex
 {
     pub position: Vec2,
-    pub color: (f32, f32, f32, f32),
+    pub color: Color,
     pub tex_coords: Option<(f32, f32, u32)>
 }
 
@@ -99,7 +100,7 @@ impl<'a> Painter<'a>
         self.origin += offset;
     }
 
-    pub fn draw_rect(&mut self, rect: Rect, color: (f32, f32, f32, f32))
+    pub fn draw_rect(&mut self, rect: Rect, color: Color)
     {
         let min = self.origin + rect.min;
         let max = self.origin + rect.max;
@@ -108,7 +109,7 @@ impl<'a> Painter<'a>
         for i in [0, 1, 2, 2, 3, 0] { self.indices.push(i0 + i); }
     }
 
-    pub fn draw_text(&mut self, rect: Rect, text: &str, size: TextSize, align: Align, auto_wrap: bool, color: (f32, f32, f32, f32))
+    pub fn draw_text(&mut self, rect: Rect, text: &str, size: TextSize, align: Align, auto_wrap: bool, color: Color)
     {
         self.add_glyphs(text, size);
         let atlas_builder = self.text.as_mut().unwrap();

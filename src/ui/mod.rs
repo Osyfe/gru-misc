@@ -4,6 +4,7 @@ pub mod layout;
 pub mod event;
 pub mod interact;
 pub mod dynamic;
+pub mod style;
 
 use crate::{paint, text::Font};
 use std::{marker::PhantomData, hash::Hash, rc::Rc, cell::{RefCell, Ref}};
@@ -127,7 +128,7 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
                     self.painter.set_offset(paint::Vec2(0.0, 0.0));
                     let mut ctx = LayoutCtx { painter: &mut self.painter };
                     let size = widget.layout(&mut ctx, data, paint::Rect { min: paint::Vec2(0.0, 0.0), max: paint::Vec2::from(self.config_current.size) / scale });
-                    let mut ctx = PaintCtx { painter: &mut self.painter, state: WidgetState::Cold };
+                    let mut ctx = PaintCtx { painter: &mut self.painter, state: interact::WidgetState::Cold, style: Default::default() };
                     widget.paint(&mut ctx, data, size);
                 }
             }
@@ -192,15 +193,8 @@ impl<'a, 'b> LayoutCtx<'a, 'b>
 pub struct PaintCtx<'a, 'b>
 {
     pub painter: &'b mut paint::Painter<'a>,
-    pub state: WidgetState
-}
-
-#[derive(Clone, Copy, PartialEq)]
-pub enum WidgetState
-{
-    Cold,
-    Hot,
-    Hover
+    pub state: interact::WidgetState,
+    pub style: style::StyleSet
 }
 
 pub trait Lens<U, T>

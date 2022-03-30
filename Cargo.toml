@@ -10,7 +10,7 @@ edition = "2021"
 [features]
 math = ["static_assertions"]
 text = ["ab_glyph", "ahash"]
-paint = ["text", "math"]
+paint = ["text", "math", "color"]
 ui = ["gru-ui-derive", "paint", "copypasta"]
 time = ["spin_sleep"]
 rand = ["rand_raw", "rand_xoshiro", "rand_distr"]

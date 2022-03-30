@@ -1,4 +1,4 @@
-use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, WidgetState, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, dynamic, paint::{TextSize, Vec2, Rect}, WidgetPod};
+use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, dynamic, style, paint::{TextSize, Vec2, Rect}, WidgetPod};
 use crate::text::Align;
 use std::{marker::PhantomData, borrow::Borrow, hash::Hash};
 
@@ -13,6 +13,7 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn bg(self) -> Bg<T, Self> { Bg::new(self) }
     fn watch(self) -> dynamic::Watch<T, Self> where T: Clone + PartialEq { dynamic::Watch::new(self) }
     fn response<'a, K: Hash + Eq>(self, register: &Register<K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, register) }
+    fn style<F: Fn(&mut style::StyleSet)>(self, styler: F) -> style::Style<T, Self, F> { style::Style::new(self, styler) }
 }
 
 impl<T, W: Widget<T> + Sized> WidgetExt<T> for W {}
@@ -161,13 +162,7 @@ impl<T, W: Widget<T>> Widget<T> for Bg<T, W>
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        let color = match ctx.state
-        {
-            WidgetState::Cold => (0.3, 0.3, 0.3, 1.0),
-            WidgetState::Hot => (0.5, 0.3, 0.3, 1.0),
-            WidgetState::Hover => (0.3, 0.3, 0.5, 1.0)
-        };
-        ctx.painter.draw_rect(Rect::new_origin(size), color);
+        ctx.painter.draw_rect(Rect::new_origin(size), ctx.style.bg.get(ctx.state));
         self.inner.widget.paint(ctx, data, size);
         size
     }
@@ -204,7 +199,7 @@ impl<T: Borrow<str>> Widget<T> for Label<T>
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        ctx.painter.draw_text(Rect::new_origin(size), data.borrow(), self.text_size, self.align, false, (0.0, 0.0, 0.0, 1.0));
+        ctx.painter.draw_text(Rect::new_origin(size), data.borrow(), self.text_size, self.align, false, ctx.style.text.get(interact::WidgetState::Cold));
         self.size
     }
 }
@@ -245,17 +240,11 @@ impl Widget<bool> for Check
     fn paint(&mut self, ctx: &mut PaintCtx, flag: &bool, _: Vec2)-> Vec2
     {
         let size1 = self.size.scale();
-        let (size2, size3) = (size1 * 0.2, size1 * 0.6);
-        let (size4, size5) = (size1 * 0.3, size1 * 0.4);
-        let color = match ctx.state
-        {
-            WidgetState::Cold => (0.0, 0.0, 0.0, 1.0),
-            WidgetState::Hot => (0.3, 0.0, 0.0, 1.0),
-            WidgetState::Hover => (0.0, 0.0, 0.3, 1.0)
-        };
-        ctx.painter.draw_rect(Rect::new_origin(Vec2(size1, size1)), color);
-        ctx.painter.draw_rect(Rect::new_size(Vec2(size2, size2), Vec2(size3, size3)), (0.8, 0.8, 0.8, 1.0));
-        if *flag { ctx.painter.draw_rect(Rect::new_size(Vec2(size4, size4), Vec2(size5, size5)), color); }
+        let (size2, size3) = (size1 * 0.15, size1 * 0.7);
+        let (size4, size5) = (size1 * 0.35, size1 * 0.3);
+        ctx.painter.draw_rect(Rect::new_origin(Vec2(size1, size1)), ctx.style.top);
+        ctx.painter.draw_rect(Rect::new_size(Vec2(size2, size2), Vec2(size3, size3)), ctx.style.bg.get(ctx.state));
+        if *flag { ctx.painter.draw_rect(Rect::new_size(Vec2(size4, size4), Vec2(size5, size5)), ctx.style.top); }
         Vec2(size1, size1)
     }
 
@@ -320,9 +309,8 @@ impl Widget<String> for Edit
     fn paint(&mut self, ctx: &mut PaintCtx, data: &String, size: Vec2) -> Vec2
     {
         let rect = Rect::new_origin(size);
-        let color = if self.active { (0.0, 0.3, 0.3, 1.0) } else { (0.0, 0.0, 0.3, 1.0) };
-        ctx.painter.draw_rect(rect, color);
-        ctx.painter.draw_text(Rect::new_origin(size), data, self.size, Align::Left, false, (1.0, 1.0, 1.0, 1.0));
+        ctx.painter.draw_rect(rect, ctx.style.bg.get(ctx.state));
+        ctx.painter.draw_text(Rect::new_origin(size), data, self.size, Align::Left, false, ctx.style.text.get(ctx.state));
         size
     }
 

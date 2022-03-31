@@ -354,6 +354,22 @@ impl Mat4
 			Vec4(0.0, 0.0, -2.0 * z_near * z_far * b, 0.0)
 		)
 	}
+
+	#[inline]
+	pub fn perspective_opengl_inverse(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
+	{
+		let a_inv = (fovy / 2.0).tan();
+		let b_inv = z_far - z_near;
+		let z_nf2 = 2.0 * z_near * z_far;
+		Self
+		(
+			Vec4(a_inv * aspect, 0.0, 0.0, 0.0),
+			Vec4(0.0, a_inv, 0.0, 0.0),
+			Vec4(0.0, 0.0, 0.0, -b_inv / z_nf2),
+			Vec4(0.0, 0.0, -1.0, (z_near + z_far) / z_nf2)
+		)
+	}
+
 	//z_lin = z_sample * z_near / (z_sample * (z_near - z_far) + z_far)
 	#[inline]
 	pub fn perspective_vulkan(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self

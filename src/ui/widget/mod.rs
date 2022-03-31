@@ -1,4 +1,4 @@
-use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, dynamic, style, paint::{TextSize, Vec2, Rect}, WidgetPod};
+use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, dynamic, style, paint::{TextSize, Vec2, Rect}, WidgetPod, WidgetPodS};
 use crate::text::Align;
 use std::{marker::PhantomData, borrow::Borrow, hash::Hash};
 
@@ -10,7 +10,8 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn fix(self, width: Option<f32>, height: Option<f32>) -> layout::Fix<T, Self> { layout::Fix::new(self, width, height) }
     fn align(self, width: LayoutAlign, height: LayoutAlign) -> layout::Align<T, Self> { layout::Align::new(self, width, height) }
     fn padding(self, front: Vec2, back: Vec2) -> layout::Padding<T, Self> { layout::Padding::new(self, front, back) }
-    fn bg(self) -> Bg<T, Self> { Bg::new(self) }
+    fn bg_inner(self) -> BgInner<T, Self> { BgInner::new(self) }
+    fn bg_outer(self) -> BgOuter<T, Self> { BgOuter::new(self) }
     fn watch(self) -> dynamic::Watch<T, Self> where T: Clone + PartialEq { dynamic::Watch::new(self) }
     fn response<'a, K: Hash + Eq>(self, register: &Register<K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, register) }
     fn style<F: Fn(&mut style::StyleSet)>(self, styler: F) -> style::Style<T, Self, F> { style::Style::new(self, styler) }
@@ -126,20 +127,55 @@ impl<U, T, W: Widget<T>> Owning<U, T, W>
     }
 }
 
-pub struct Bg<T, W: Widget<T>>
+pub struct BgInner<T, W: Widget<T>>
+{
+    inner: WidgetPodS<T, W>
+}
+
+impl<T, W: Widget<T>> Widget<T> for BgInner<T, W>
+{
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.inner.widget.update(data)
+    }
+
+    #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
+    {
+        self.inner.widget.event(ctx, data, event);
+    }
+
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
+    {
+        self.inner.size = self.inner.widget.layout(ctx, data, constraints);
+        self.inner.size
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
+    {
+        ctx.painter.draw_rect(Rect::new_origin(self.inner.size), ctx.style.bg.get(ctx.state));
+        self.inner.widget.paint(ctx, data, self.inner.size);
+        size
+    }
+}
+
+impl<T, W: Widget<T>> BgInner<T, W>
+{
+    pub fn new(widget: W) -> Self
+    {
+        Self { inner: WidgetPodS::new(widget) }
+    }
+}
+
+pub struct BgOuter<T, W: Widget<T>>
 {
     inner: WidgetPod<T, W>
 }
 
-impl<T, W: Widget<T>> Bg<T, W>
-{
-    pub fn new(widget: W) -> Self
-    {
-        Self { inner: WidgetPod::new(widget) }
-    }
-}
-
-impl<T, W: Widget<T>> Widget<T> for Bg<T, W>
+impl<T, W: Widget<T>> Widget<T> for BgOuter<T, W>
 {
     #[inline]
     fn update(&mut self, data: &mut T) -> bool
@@ -165,6 +201,14 @@ impl<T, W: Widget<T>> Widget<T> for Bg<T, W>
         ctx.painter.draw_rect(Rect::new_origin(size), ctx.style.bg.get(ctx.state));
         self.inner.widget.paint(ctx, data, size);
         size
+    }
+}
+
+impl<T, W: Widget<T>> BgOuter<T, W>
+{
+    pub fn new(widget: W) -> Self
+    {
+        Self { inner: WidgetPod::new(widget) }
     }
 }
 

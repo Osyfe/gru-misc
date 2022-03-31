@@ -130,6 +130,7 @@ pub enum Event
     PointerMoved { pos: Vec2, delta: Vec2 },
     PointerClicked { pos: Vec2, button: MouseButton, pressed: bool },
     PointerGone,
+    Scroll { dx: f32, dy: f32 },
     Key { key: Key, pressed: bool },
     Char(char)
 }

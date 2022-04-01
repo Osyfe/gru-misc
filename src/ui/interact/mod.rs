@@ -48,7 +48,11 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
         let mut update = false;
         match event.event
         {
-            Event::PointerGone => self.state = WidgetState::Cold,
+            Event::PointerGone =>
+            {
+                self.state = WidgetState::Cold;
+                update = true;
+            },
             Event::PointerMoved { pos, .. } =>
             {
                 let hover = Rect::new_origin(self.inner.size).contains_linf(pos);

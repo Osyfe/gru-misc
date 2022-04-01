@@ -94,16 +94,18 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
         let scale = self.config_current.scale * self.config_current.display_scale_factor;
         if old_config != self.config_current { self.update_requested = true; }
 
+        let mut gone = event::EventPod::new(event::Event::PointerGone);
         for response in self.responses.borrow_mut().values_mut() { response.clicked = None; }
         for (widget, active_fetch, active) in &mut self.widgets
         {
             let new_active = active_fetch(data);
             if (*active != new_active) || (*active && widget.update(data)) { self.update_requested = true; }
+            if *active && !new_active { widget.event(&mut EventCtx { update_requested: &mut self.update_requested }, data, &mut gone); }
             *active = new_active;
         }
 
-        self.events.clear();
         let mut ctx = EventCtx { update_requested: &mut self.update_requested };
+        self.events.clear();
         for event in events
         {
             let mut event = event::EventPod::new(event.clone());
@@ -114,11 +116,6 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
             }
             event.event.scale(scale);
             self.events.push(event);
-        }
-        let mut gone = event::EventPod::new(event::Event::PointerGone);
-        for (widget, _, active) in &mut self.widgets
-        {
-            if !*active { widget.event(&mut ctx, data, &mut gone); }
         }
 
         if self.update_requested

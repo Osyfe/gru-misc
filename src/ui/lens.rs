@@ -90,9 +90,9 @@ impl<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>> Lens<V, T> for LensChain<V, U, T, 
     }
 }
 
-pub struct LensVec(pub usize);
+pub struct LensSlice(pub usize);
 
-impl<T, U: AsRef<[T]> + AsMut<[T]>> Lens<U, T> for LensVec
+impl<T, U: AsRef<[T]> + AsMut<[T]>> Lens<U, T> for LensSlice
 {
     #[inline]
     fn with<A, F: FnOnce(&T) -> A>(&self, data: &U, f: F) -> A

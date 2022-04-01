@@ -154,11 +154,11 @@ impl<T, W: Widget<T>> Widget<T> for BgInner<T, W>
     }
 
     #[inline]
-    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, _: Vec2) -> Vec2
     {
         ctx.painter.draw_rect(Rect::new_origin(self.inner.size), ctx.style.bg.get(ctx.state));
         self.inner.widget.paint(ctx, data, self.inner.size);
-        size
+        self.inner.size
     }
 }
 

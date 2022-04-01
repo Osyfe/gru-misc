@@ -10,8 +10,8 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn fix(self, width: Option<f32>, height: Option<f32>) -> layout::Fix<T, Self> { layout::Fix::new(self, width, height) }
     fn align(self, width: LayoutAlign, height: LayoutAlign) -> layout::Align<T, Self> { layout::Align::new(self, width, height) }
     fn padding(self, front: Vec2, back: Vec2) -> layout::Padding<T, Self> { layout::Padding::new(self, front, back) }
-    fn bg_inner(self) -> BgInner<T, Self> { BgInner::new(self) }
-    fn bg_outer(self) -> BgOuter<T, Self> { BgOuter::new(self) }
+    fn bg_inner(self) -> Bg<T, Self, true> { Bg::inner(self) }
+    fn bg_outer(self) -> Bg<T, Self, false> { Bg::outer(self) }
     fn watch(self) -> dynamic::Watch<T, Self> where T: Clone + PartialEq { dynamic::Watch::new(self) }
     fn response<'a, K: Hash + Eq>(self, register: &Register<K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, register) }
     fn style<F: Fn(&mut style::StyleSet)>(self, styler: F) -> style::Style<T, Self, F> { style::Style::new(self, styler) }
@@ -127,12 +127,13 @@ impl<U, T, W: Widget<T>> Owning<U, T, W>
     }
 }
 
-pub struct BgInner<T, W: Widget<T>>
+pub struct Bg<T, W: Widget<T>, const INNER: bool>
 {
-    inner: WidgetPodS<T, W>
+    inner: WidgetPodS<T, W>,
+    style: Option<style::ColorSet>
 }
 
-impl<T, W: Widget<T>> Widget<T> for BgInner<T, W>
+impl<T, W: Widget<T>, const INNER: bool> Widget<T> for Bg<T, W, INNER>
 {
     #[inline]
     fn update(&mut self, data: &mut T) -> bool
@@ -154,61 +155,38 @@ impl<T, W: Widget<T>> Widget<T> for BgInner<T, W>
     }
 
     #[inline]
-    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, _: Vec2) -> Vec2
-    {
-        ctx.painter.draw_rect(Rect::new_origin(self.inner.size), ctx.style.bg.get(ctx.state));
-        self.inner.widget.paint(ctx, data, self.inner.size);
-        self.inner.size
-    }
-}
-
-impl<T, W: Widget<T>> BgInner<T, W>
-{
-    pub fn new(widget: W) -> Self
-    {
-        Self { inner: WidgetPodS::new(widget) }
-    }
-}
-
-pub struct BgOuter<T, W: Widget<T>>
-{
-    inner: WidgetPod<T, W>
-}
-
-impl<T, W: Widget<T>> Widget<T> for BgOuter<T, W>
-{
-    #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.inner.widget.update(data)
-    }
-
-    #[inline]
-    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
-    {
-        self.inner.widget.event(ctx, data, event);
-    }
-
-    #[inline]
-    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
-    {
-        self.inner.widget.layout(ctx, data, constraints)
-    }
-
-    #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        ctx.painter.draw_rect(Rect::new_origin(size), ctx.style.bg.get(ctx.state));
+        let size = if INNER { self.inner.size } else { size };
+        let color = self.style.as_ref().unwrap_or_else(|| &ctx.style.bg).get(ctx.state);
+        ctx.painter.draw_rect(Rect::new_origin(size), color);
         self.inner.widget.paint(ctx, data, size);
         size
     }
 }
 
-impl<T, W: Widget<T>> BgOuter<T, W>
+impl<T, W: Widget<T>, const INNER: bool> Bg<T, W, INNER>
 {
-    pub fn new(widget: W) -> Self
+    pub fn color(mut self, color: style::ColorSet) -> Self
     {
-        Self { inner: WidgetPod::new(widget) }
+        self.style = Some(color);
+        self
+    }
+}
+
+impl<T, W: Widget<T>> Bg<T, W, true>
+{
+    pub fn inner(widget: W) -> Self
+    {
+        Self { inner: WidgetPodS::new(widget), style: None }
+    }
+}
+
+impl<T, W: Widget<T>> Bg<T, W, false>
+{
+    pub fn outer(widget: W) -> Self
+    {
+        Self { inner: WidgetPodS::new(widget), style: None }
     }
 }
 

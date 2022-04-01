@@ -10,6 +10,11 @@ pub struct ColorSet
 
 impl ColorSet
 {
+    pub fn uniform(color: Color) -> Self
+    {
+        Self { cold: color, hot: color, hover: color }
+    }
+
     pub fn get(&self, state: WidgetState) -> Color
     {
         match state

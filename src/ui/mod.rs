@@ -115,6 +115,11 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
             event.event.scale(scale);
             self.events.push(event);
         }
+        let mut gone = event::EventPod::new(event::Event::PointerGone);
+        for (widget, _, active) in &mut self.widgets
+        {
+            if !*active { widget.event(&mut ctx, data, &mut gone); }
+        }
 
         if self.update_requested
         {

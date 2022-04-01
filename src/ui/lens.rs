@@ -89,3 +89,20 @@ impl<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>> Lens<V, T> for LensChain<V, U, T, 
         self.lens1.with_mut(data, |data| self.lens2.with_mut(data, |data| f(data)))
     }
 }
+
+pub struct LensVec(pub usize);
+
+impl<T, U: AsRef<[T]> + AsMut<[T]>> Lens<U, T> for LensVec
+{
+    #[inline]
+    fn with<A, F: FnOnce(&T) -> A>(&self, data: &U, f: F) -> A
+    {
+        f(&data.as_ref()[self.0])
+    }
+
+    #[inline]
+    fn with_mut<A, F: FnOnce(&mut T) -> A>(&mut self, data: &mut U, f: F) -> A
+    {
+        f(&mut data.as_mut()[self.0])
+    }
+}

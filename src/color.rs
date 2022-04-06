@@ -5,7 +5,7 @@ pub struct Color(f32, f32, f32, f32); //normalized linear rgb + alpha
 
 impl Color
 {
-    pub fn from_normalized_linear(r: f32, g: f32, b: f32, a: f32) -> Self
+    pub const fn from_normalized_linear(r: f32, g: f32, b: f32, a: f32) -> Self
     {
         Self(r, g, b, a)
     }

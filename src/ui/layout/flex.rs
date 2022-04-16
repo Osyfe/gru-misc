@@ -104,8 +104,8 @@ impl<'a, T, const ROW: bool> Widget<T> for Flex<'a, T, ROW>
                 size.1 += w_size.1 + pad_mid + self.padding;
             }
         }
-        if ROW { size.0 += -self.padding + pad_back }
-        else { size.1 += -self.padding + pad_back; }
+        if ROW { size.0 += -pad_mid - self.padding + pad_back }
+        else { size.1 += -pad_mid - self.padding + pad_back; }
         size
     }
 

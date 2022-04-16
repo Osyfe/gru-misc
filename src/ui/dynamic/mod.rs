@@ -55,14 +55,14 @@ impl<T: Clone + PartialEq, W: Widget<T>> Watch<T, W>
     }
 }
 
-pub struct Dynamic<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<W>>
+pub struct Dynamic<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<Option<W>>>
 {
     inner: WidgetPod<T, Option<W>>,
     map: Rc<RefCell<AHashMap<K, ResponseState>>>,
     generator: F
 }
 
-impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<W>> Widget<T> for Dynamic<T, W, K, F>
+impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<Option<W>>> Widget<T> for Dynamic<T, W, K, F>
 {
     #[inline]
     fn update(&mut self, data: &mut T) -> bool
@@ -70,7 +70,7 @@ impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<W>> 
         let mut update = false;
         if let Some(new) = (self.generator)(Register(&self.map), data)
         {
-            self.inner.widget = Some(new);
+            self.inner.widget = new;
             update = true;
         }
         if self.inner.widget.update(data) { update = true; }
@@ -102,7 +102,7 @@ impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<W>> 
     }
 }
 
-impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<W>> Dynamic<T, W, K, F>
+impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<Option<W>>> Dynamic<T, W, K, F>
 {
     pub fn new<U>(ui: &Ui<U, K>, generator: F) -> Self
     {

@@ -10,7 +10,7 @@ pub struct ColorSet
 
 impl ColorSet
 {
-    pub fn uniform(color: Color) -> Self
+    pub const fn uniform(color: Color) -> Self
     {
         Self { cold: color, hot: color, hover: color }
     }

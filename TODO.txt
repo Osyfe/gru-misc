@@ -4,3 +4,9 @@ windows icon:
 
 text:
 	kerning (bitmap gen and glyph placing)?
+
+ui:
+	icon
+	drop down etc.
+	dynamic style
+	dynamic owning

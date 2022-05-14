@@ -55,6 +55,49 @@ impl<T: Clone + PartialEq, W: Widget<T>> Watch<T, W>
     }
 }
 
+pub struct Transform<'a, U, T, W: Widget<T>>
+{
+    inner: W,
+    data: T,
+    transformer: Box<dyn FnMut(&U) -> T + 'a>
+}
+
+impl<'a, U, T, W: Widget<T>> Widget<U> for Transform<'a, U, T, W>
+{
+    #[inline]
+    fn update(&mut self, _: &mut U) -> bool
+    {
+        false
+    }
+
+    #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, _: &mut U, event: &mut EventPod)
+    {
+        self.inner.event(ctx, &mut self.data, event)
+    }
+
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &U, constraints: Rect) -> Vec2
+    {
+        self.data = (self.transformer)(data);
+        self.inner.layout(ctx, &self.data, constraints)
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, _: &U, size: Vec2) -> Vec2
+    {
+        self.inner.paint(ctx, &self.data, size)
+    }
+}
+
+impl<'a, U, T, W: Widget<T>> Transform<'a, U, T, W>
+{
+    pub fn new(widget: W, init: T, transformer: impl FnMut(&U) -> T + 'a) -> Self
+    {
+        Self { inner: widget, data: init, transformer: Box::new(transformer) }
+    }
+}
+
 pub struct Dynamic<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<Option<W>>>
 {
     inner: WidgetPod<T, Option<W>>,

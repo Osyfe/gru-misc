@@ -6,7 +6,6 @@ pub trait WidgetExt<T>: Widget<T> + Sized
 {
     fn boxed<'a>(self) -> Box<dyn Widget<T> + 'a> where Self: 'a { Box::new(self) }
     fn owning<U>(self, data: T) -> Owning<U, T, Self> { Owning::new(self, data) }
-    fn format<U>(self, start: T, formater: fn(&U) -> T) -> Format<U, T, Self> { Format::new(self, start, formater) }
     fn lens<U, L: Lens<U, T>>(self, lens: L) -> lens::LensWrap<U, T, Self, L> { lens::LensWrap::new(self, lens) }
     fn fix(self, width: Option<f32>, height: Option<f32>) -> layout::Fix<T, Self> { layout::Fix::new(self, width, height) }
     fn align(self, width: LayoutAlign, height: LayoutAlign) -> layout::Align<T, Self> { layout::Align::new(self, width, height) }
@@ -14,6 +13,7 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn bg_inner(self) -> Bg<T, Self, true> { Bg::inner(self) }
     fn bg_outer(self) -> Bg<T, Self, false> { Bg::outer(self) }
     fn watch(self) -> dynamic::Watch<T, Self> where T: Clone + PartialEq { dynamic::Watch::new(self) }
+    fn transform<'a, U>(self, init: T, transformer: impl FnMut(&U) -> T + 'a) -> dynamic::Transform<'a, U, T, Self> { dynamic::Transform::new(self, init, transformer) }
     fn response<'a, K: Hash + Eq>(self, register: &Register<K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, register) }
     fn style<F: Fn(&mut style::StyleSet)>(self, styler: F) -> style::Style<T, Self, F> { style::Style::new(self, styler) }
 }
@@ -83,50 +83,6 @@ impl<'a, T> Widget<T> for Box<dyn Widget<T> + 'a>
     fn response(&mut self, data: &mut T, button: Option<MouseButton>) -> bool
     {
         self.as_mut().response(data, button)
-    }
-}
-
-pub struct Format<U, T, W: Widget<T>> {
-    formater: fn(&U) -> T,
-    inner: WidgetPod<T, W>,
-    data: T,
-    _phantom: PhantomData<U>
-}
-
-impl<U, T: PartialEq, W: Widget<T>> Widget<U> for Format<U, T, W> {
-    fn update(&mut self, data: &mut U) -> bool {
-        let data = (self.formater)(data);
-        if data != self.data {
-            self.data = data;
-            return true
-        }
-        return false 
-    }
-
-    #[inline]
-    fn event(&mut self, ctx: &mut EventCtx, _: &mut U, event: &mut EventPod)
-    {
-        self.inner.widget.event(ctx, &mut self.data, event)
-    }
-
-    #[inline]
-    fn layout(&mut self, ctx: &mut LayoutCtx, _: &U, constraints: Rect) -> Vec2
-    {
-        self.inner.widget.layout(ctx, &self.data, constraints)
-    }
-
-    #[inline]
-    fn paint(&mut self, ctx: &mut PaintCtx, _: &U, size: Vec2) -> Vec2
-    {
-        self.inner.widget.paint(ctx, &self.data, size)
-    }
-}
-
-impl<U, T, W: Widget<T>> Format<U, T, W>
-{
-    pub fn new(widget: W, data: T, formater: fn(&U) -> T) -> Self
-    {
-        Self {formater, inner: WidgetPod::new(widget), data, _phantom: PhantomData }
     }
 }
 

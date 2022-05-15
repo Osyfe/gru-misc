@@ -103,7 +103,7 @@ impl<T, W: Widget<T>> Fix<T, W>
 
 pub struct Align<T, W: Widget<T>>
 {
-    inner: WidgetPodP<T, W>,
+    inner: WidgetPodP<T, W>, //size contains the margin!
     width: LayoutAlign,
     height: LayoutAlign
 }
@@ -145,14 +145,16 @@ impl<T, W: Widget<T>> Widget<T> for Align<T, W>
             LayoutAlign::Back => margin.1,
             LayoutAlign::FillPadding => margin.1 / 4.0
         };
-        Vec2(self.inner.size.0.max(constraints.max.0), self.inner.size.1.max(constraints.max.1))
+        let size = Vec2(self.inner.size.0.max(constraints.max.0), self.inner.size.1.max(constraints.max.1));
+        self.inner.size = margin;
+        size
     }
 
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
         ctx.painter.add_offset(self.inner.pos);
-        let size = self.inner.widget.paint(ctx, data, size - self.inner.pos * 2.0);
+        let size = self.inner.widget.paint(ctx, data, size - self.inner.size);
         ctx.painter.add_offset(-self.inner.pos);
         size
     }

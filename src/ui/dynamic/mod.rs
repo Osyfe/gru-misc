@@ -98,23 +98,39 @@ impl<'a, U, T, W: Widget<T>> Transform<'a, U, T, W>
     }
 }
 
-pub struct Dynamic<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<Option<W>>>
+pub enum DynamicContent<W>
+{
+    Keep,
+    Show(W),
+    Hide
+}
+
+pub struct Dynamic<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicContent<W>>
 {
     inner: WidgetPod<T, Option<W>>,
     map: Rc<RefCell<AHashMap<K, ResponseState>>>,
     generator: F
 }
 
-impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<Option<W>>> Widget<T> for Dynamic<T, W, K, F>
+impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicContent<W>> Widget<T> for Dynamic<T, W, K, F>
 {
     #[inline]
     fn update(&mut self, data: &mut T) -> bool
     {
         let mut update = false;
-        if let Some(new) = (self.generator)(Register(&self.map), data)
+        match (self.generator)(Register(&self.map), data)
         {
-            self.inner.widget = new;
-            update = true;
+            DynamicContent::Keep => {},
+            DynamicContent::Show(new) =>
+            {
+                self.inner.widget = Some(new);
+                update = true;
+            },
+            DynamicContent::Hide =>
+            {
+                self.inner.widget = None;
+                update = false;
+            }
         }
         if self.inner.widget.update(data) { update = true; }
         update
@@ -145,7 +161,7 @@ impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<Opti
     }
 }
 
-impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> Option<Option<W>>> Dynamic<T, W, K, F>
+impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicContent<W>> Dynamic<T, W, K, F>
 {
     pub fn new<U>(ui: &Ui<U, K>, generator: F) -> Self
     {

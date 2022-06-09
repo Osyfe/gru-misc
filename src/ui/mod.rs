@@ -5,6 +5,7 @@ pub mod event;
 pub mod interact;
 pub mod dynamic;
 pub mod style;
+mod pods;
 
 use crate::{paint, text::Font};
 use std::{marker::PhantomData, hash::Hash, rc::Rc, cell::{RefCell, Ref}};
@@ -206,52 +207,3 @@ pub trait Lens<U, T>
 }
 
 pub use gru_ui_derive::Lens;
-
-struct WidgetPod<T, W: Widget<T>>
-{
-    widget: W,
-    _phantom: PhantomData<T>
-}
-
-impl<T, W: Widget<T>> WidgetPod<T, W>
-{
-    fn new(widget: W) -> Self
-    {
-        Self { widget, _phantom: PhantomData }
-    }
-}
-
-struct WidgetPodS<T, W: Widget<T>>
-{
-    widget: W,
-    _phantom: PhantomData<T>,
-    size: paint::Vec2
-}
-
-impl<T, W: Widget<T>> WidgetPodS<T, W>
-{
-    fn new(widget: W) -> Self
-    {
-        Self { widget, _phantom: PhantomData, size: paint::Vec2(0.0, 0.0) }
-    }
-}
-
-struct WidgetPodP<T, W: Widget<T>>
-{
-    widget: W,
-    _phantom: PhantomData<T>,
-    pos: paint::Vec2,
-    size: paint::Vec2
-}
-
-impl<T, W: Widget<T>> WidgetPodP<T, W>
-{
-    fn new(widget: W) -> Self
-    {
-        Self { widget, _phantom: PhantomData, pos: paint::Vec2(0.0, 0.0), size: paint::Vec2(0.0, 0.0) }
-    }
-}
-
-//type WidgetBox<'a, T> = WidgetPod<T, Box<dyn Widget<T> + 'a>>;
-//type WidgetBoxS<'a, T> = WidgetPod<T, Box<dyn Widget<T> + 'a>>;
-type WidgetBoxP<'a, T> = WidgetPodP<T, Box<dyn Widget<T> + 'a>>;

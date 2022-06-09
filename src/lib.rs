@@ -6,6 +6,8 @@ pub mod text;
 pub mod paint;
 #[cfg(feature = "ui")]
 pub mod ui;
+#[cfg(feature = "thread")]
+pub mod thread;
 #[cfg(feature = "time")]
 pub mod time;
 #[cfg(feature = "rand")]

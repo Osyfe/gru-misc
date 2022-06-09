@@ -3,7 +3,7 @@ pub use flex::*;
 mod split;
 pub use split::*;
 
-use super::{Widget, EventCtx, LayoutCtx, PaintCtx, event::EventPod, paint::{Vec2, Rect}, WidgetPod, WidgetPodS, WidgetPodP, WidgetBoxP};
+use super::{Widget, EventCtx, LayoutCtx, PaintCtx, event::EventPod, paint::{Vec2, Rect}, pods::{WidgetPod, WidgetPodS, WidgetPodP, WidgetBoxP}};
 use std::marker::PhantomData;
 
 #[derive(Clone, Copy, PartialEq)]

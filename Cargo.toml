@@ -12,6 +12,7 @@ math = ["static_assertions"]
 text = ["ab_glyph", "ahash"]
 paint = ["text", "math", "color"]
 ui = ["gru-ui-derive", "paint", "copypasta"]
+thread = ["flume"]
 time = ["spin_sleep"]
 rand = ["rand_raw", "rand_xoshiro", "rand_distr"]
 color = []
@@ -19,12 +20,13 @@ serde_impl = ["serde", "ahash/serde"]
 
 [dependencies]
 static_assertions = { version = "1.1.0", optional = true }
-ab_glyph = { version = "0.2.11", optional = true }
-ahash = { version = "0.7.5", optional = true }
+ab_glyph = { version = "0.2.15", optional = true }
+ahash = { version = "0.7.6", optional = true }
 gru-ui-derive = { path = "gru-ui-derive", optional = true }
 copypasta = { version = "0.7.1", optional = true }
-spin_sleep = { version = "1.0.0", optional = true }
-rand_raw = { package = "rand", version = "0.8.4", default-features = false, optional = true }
+flume = { version = "0.10.12", default-features = false, optional = true }
+spin_sleep = { version = "1.1.1", optional = true }
+rand_raw = { package = "rand", version = "0.8.5", default-features = false, optional = true }
 rand_xoshiro = { version = "0.6.0", optional = true }
-rand_distr = { version = "0.4.1", default-features = false, features = ["std_math"], optional = true }
-serde = { version = "1.0.129", default-features = false, features = ["derive", "std"], optional = true }
+rand_distr = { version = "0.4.3", default-features = false, features = ["std_math"], optional = true }
+serde = { version = "1.0.137", default-features = false, features = ["derive", "std"], optional = true }

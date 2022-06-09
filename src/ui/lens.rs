@@ -15,14 +15,14 @@ pub struct LensWrap<U, T, W: Widget<T>, L: Lens<U, T>>
 {
     inner: W,
     lens: L,
-    _phantom: (PhantomData<U>, PhantomData<T>)
+    _phantom: PhantomData<(U, T)>
 }
 
 impl<U, T, W: Widget<T>, L: Lens<U, T>> LensWrap<U, T, W, L>
 {
     pub fn new(inner: W, lens: L) -> Self
     {
-        Self { inner, lens, _phantom: (PhantomData, PhantomData) }
+        Self { inner, lens, _phantom: PhantomData }
     }
 }
 

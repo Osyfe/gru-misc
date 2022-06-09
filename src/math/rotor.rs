@@ -225,11 +225,12 @@ impl Rotor
 	{
 		let normal = v1.cross(v2);
 		let dot = v1.dot(v2);
-		let phi = dot.acos();
+		let phi = dot.max(-1.0).min(1.0).acos();
 		let phi_mod = -phi / 2.0;
 		let cos = phi_mod.cos();
 		let sin_red = -(1.0 / (2.0 * (1.0 + dot))).sqrt(); //diverges for v1 ~ -v2
-		Self { s: cos, yz: sin_red * normal.0, zx: sin_red * normal.1, xy: sin_red * normal.2 }
+		if sin_red.is_nan() { Self { s: 0.0, yz: 0.0, zx: 0.0, xy: 1.0 } } //TODO cleaner solution
+		else { Self { s: cos, yz: sin_red * normal.0, zx: sin_red * normal.1, xy: sin_red * normal.2 } }
 	}
 
 	#[inline]

@@ -127,6 +127,7 @@ pub enum Key
 #[derive(Clone, PartialEq)]
 pub enum Event
 {
+    RawMouseDelta(Vec2),
     PointerMoved { pos: Vec2, delta: Vec2 },
     PointerClicked { pos: Vec2, button: MouseButton, pressed: bool },
     PointerGone,

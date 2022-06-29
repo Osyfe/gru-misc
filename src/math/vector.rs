@@ -99,6 +99,24 @@ impl<T: From<f32>> From<Vec2> for (T, T)
 impl Vec2
 {
 	#[inline]
+	pub const fn zero() -> Self
+	{
+		Self(0.0, 0.0)
+	}
+
+	#[inline]
+	pub const fn e_x() -> Self
+	{
+		Self(1.0, 0.0)
+	}
+
+	#[inline]
+	pub const fn e_y() -> Self
+	{
+		Self(0.0, 1.0)
+	}
+
+	#[inline]
 	pub fn norm_sqr(self) -> f32
 	{
 		self.0 * self.0 + self.1 * self.1
@@ -187,6 +205,37 @@ impl<T: From<f32>> From<Vec3> for (T, T, T)
 
 impl Vec3
 {
+	#[inline]
+	pub const fn zero() -> Self
+	{
+		Self(0.0, 0.0, 0.0)
+	}
+
+	#[inline]
+	pub const fn e_x() -> Self
+	{
+		Self(1.0, 0.0, 0.0)
+	}
+
+	#[inline]
+	pub const fn e_y() -> Self
+	{
+		Self(0.0, 1.0, 0.0)
+	}
+
+	#[inline]
+	pub const fn e_z() -> Self
+	{
+		Self(0.0, 0.0, 1.0)
+	}
+
+	#[inline]
+	pub fn from_sphere(theta: f32, phi: f32) -> Self
+	{
+		let sin_theta = theta.sin();
+		Self(sin_theta * phi.cos(), sin_theta * phi.sin(), theta.cos())
+	}
+
 	#[inline]
 	pub fn norm_sqr(self) -> f32
 	{
@@ -295,6 +344,12 @@ impl<T: From<f32>> From<Vec4> for (T, T, T, T)
 
 impl Vec4
 {
+	#[inline]
+	pub const fn zero() -> Self
+	{
+		Self(0.0, 0.0, 0.0, 0.0)
+	}
+
 	#[inline]
 	pub fn norm_sqr(self) -> f32
 	{

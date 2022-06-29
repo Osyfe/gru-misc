@@ -17,7 +17,7 @@ enum ResSlot
     Done(Option<Res>)
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq)]
 pub struct TaskKey<T>
 {
     key: Key,
@@ -48,7 +48,7 @@ impl Pool
     {
         let (s2, r2) = flume::bounded(num_threads);
         let mut worker = Vec::with_capacity(num_threads);
-        for _ in 0..num_threads { worker.push(Worker::new(s2.clone())); }
+        for i in 0..num_threads { worker.push(Worker::new(i, s2.clone())); }
         Self { worker, send: s2, recv: r2, task: VecDeque::new(), res: Vec::new(), free: Vec::new(), available: 0 }
     }
 
@@ -75,7 +75,7 @@ impl Pool
                     worker.free = false;
                     if let Err(flume::SendError(task)) = worker.submit.send((i, key, task))
                     { //replace broken worker and submit again
-                        *worker = Worker::new(self.send.clone());
+                        *worker = Worker::new(i, self.send.clone());
                         worker.free = false;
                         worker.submit.send(task).unwrap();
                     }
@@ -123,17 +123,17 @@ impl Pool
 
 impl Worker
 {
-    fn new(send: flume::Sender<(usize, Key, Res)>) -> Self
+    fn new(id: usize, send: flume::Sender<(usize, Key, Res)>) -> Self
     {
         let (s1, r1) = flume::bounded::<(usize, Key, Task)>(1);
-        thread::spawn(move ||
+        thread::Builder::new().name(format!("Worker {id}")).spawn(move ||
         {
             for (i, key, task) in r1
             {
                 let res = task();
                 if send.send((i, key, res)).is_err() { break; }
             }
-        });
+        }).unwrap();
         Self { submit: s1, free: true }
     }
 }
@@ -142,6 +142,14 @@ impl ResSlot
 {
     fn free(&self) -> bool {  if let Self::Free = self { true } else { false } }
     fn pending(&self) -> bool {  if let Self::Pending = self { true } else { false } }
+}
+
+impl<T> Clone for TaskKey<T>
+{
+	fn clone(&self) -> Self
+	{
+		Self { key: self.key, _phantom: PhantomData }
+	}
 }
 
 #[cfg(test)]
@@ -158,7 +166,7 @@ mod tests //cargo test --features thread -- --nocapture
             {
                 for i in (0..keys.len()).rev()
                 {
-                    let res = pool.query(keys[i].1);
+                    let res = pool.query(keys[i].1.clone());
                     if let Query::Done(id) = res
                     {
                         if id != keys[i].0 { panic!("task mismatch"); }

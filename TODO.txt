@@ -8,5 +8,4 @@ text:
 ui:
 	icon
 	drop down etc.
-	dynamic style
 	split secondary align

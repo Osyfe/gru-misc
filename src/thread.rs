@@ -33,7 +33,7 @@ pub enum Query<T>
 
 pub struct Pool
 {
-    worker: Vec<Worker>,
+    worker: Box<[Worker]>,
     send: flume::Sender<(usize, Key, Res)>,
     recv: flume::Receiver<(usize, Key, Res)>,
     task: VecDeque<(Key, Task)>,
@@ -47,8 +47,7 @@ impl Pool
     pub fn new(num_threads: usize) -> Self
     {
         let (s2, r2) = flume::bounded(num_threads);
-        let mut worker = Vec::with_capacity(num_threads);
-        for i in 0..num_threads { worker.push(Worker::new(i, s2.clone())); }
+        let worker = (0..num_threads).map(|i| Worker::new(i, s2.clone())).collect();
         Self { worker, send: s2, recv: r2, task: VecDeque::new(), res: Vec::new(), free: Vec::new(), available: 0 }
     }
 

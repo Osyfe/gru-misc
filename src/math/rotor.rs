@@ -15,7 +15,7 @@ pub struct Complex
 
 impl Display for Complex
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
+    fn fmt(&self, f: &mut Formatter) -> Result
     {
         write!(f, "({} + {}i)", self.re, self.im)
     }

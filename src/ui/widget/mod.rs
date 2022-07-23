@@ -164,6 +164,12 @@ impl<T, W: Widget<T>, const INNER: bool> Widget<T> for Bg<T, W, INNER>
         self.inner.widget.paint(ctx, data, size);
         size
     }
+
+    #[inline]
+    fn response(&mut self, data: &mut T, button: Option<super::event::MouseButton>) -> bool
+    {
+        Widget::response(&mut self.inner.widget, data, button)
+    }
 }
 
 impl<T, W: Widget<T>, const INNER: bool> Bg<T, W, INNER>
@@ -264,10 +270,10 @@ impl Widget<bool> for Check
     {
         let size1 = self.size.scale();
         let (size2, size3) = (size1 * 0.15, size1 * 0.7);
-        let (size4, size5) = (size1 * 0.35, size1 * 0.3);
+        let (size4, size5) = (size1 * 0.3, size1 * 0.4);
         ctx.painter.draw_rect(Rect::new_origin(Vec2(size1, size1)), ctx.style.top);
-        ctx.painter.draw_rect(Rect::new_size(Vec2(size2, size2), Vec2(size3, size3)), ctx.style.bg.get(ctx.state));
-        if *flag { ctx.painter.draw_rect(Rect::new_size(Vec2(size4, size4), Vec2(size5, size5)), ctx.style.top); }
+        ctx.painter.draw_rect(Rect::new_size(Vec2(size2, size2), Vec2(size3, size3)), ctx.style.data.get(ctx.state));
+        if *flag { ctx.painter.draw_rhombus(Rect::new_size(Vec2(size4, size4), Vec2(size5, size5)), ctx.style.top); }
         Vec2(size1, size1)
     }
 
@@ -283,6 +289,79 @@ impl Check
     pub fn new(size: TextSize) -> Self
     {
         Self { size }
+    }
+}
+
+pub struct Slider
+{
+    min: f32,
+    max: f32,
+    step: f32,
+    size: Vec2,
+    dragged: bool
+}
+
+impl Widget<f32> for Slider
+{
+    fn update(&mut self, _: &mut f32) -> bool
+    {
+        false
+    }
+
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut f32, event: &mut EventPod)
+    {
+        match event.event
+        {
+            Event::PointerClicked { pos, button: MouseButton::Primary, pressed } => if pressed
+            {
+                let f = pos.0 / self.size.0;
+                if pos.1 >= 0.0 && pos.1 <= self.size.1 && f >= 0.0 && f <= 1.0
+                {
+                    self.dragged = true;
+                    *data = (f * (self.max - self.min) / self.step).round() * self.step + self.min;
+                    ctx.request_update();
+                }
+            } else if self.dragged
+            {
+                self.dragged = false;
+                ctx.request_update();
+            },
+            Event::PointerMoved { pos, .. } => if self.dragged
+            {
+                let f = (pos.0 / self.size.0).max(0.0).min(1.0);
+                let new = (f * (self.max - self.min) / self.step).round() * self.step + self.min;
+                if new != *data
+                {
+                    *data = new;
+                    ctx.request_update();
+                }
+            }
+            _ => {}
+        }
+    }
+        
+    fn layout(&mut self, _: &mut LayoutCtx, _: &f32, constraints: Rect) -> Vec2
+    {
+        Vec2(constraints.max.1, 1.0)
+    }
+
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &f32, size: Vec2) -> Vec2
+    {
+        self.size = size;
+        let pos = (data - self.min) / (self.max - self.min) * size.0;
+        let (x0, x1, x2, x3) = (0.0, pos - 0.5, pos + 0.5, size.0);
+        let (y0, y1, y2, y3) = (0.0, size.1 / 3.0, size.1 / 1.5, size.1);
+        ctx.painter.draw_rect(Rect { min: Vec2(x0, y1), max: Vec2(x3, y2) }, ctx.style.top);
+        ctx.painter.draw_rhombus(Rect { min: Vec2(x1, y0), max: Vec2(x2, y3) }, if self.dragged { ctx.style.data.hot } else { ctx.style.data.cold });
+        size
+    }
+}
+
+impl Slider
+{
+    pub fn new(min: f32, max: f32, step: f32) -> Self
+    {
+        Self { min, max, step, size: Vec2::zero(), dragged: false }
     }
 }
 
@@ -332,7 +411,7 @@ impl Widget<String> for Edit
     fn paint(&mut self, ctx: &mut PaintCtx, data: &String, size: Vec2) -> Vec2
     {
         let rect = Rect::new_origin(size);
-        ctx.painter.draw_rect(rect, ctx.style.bg.get(ctx.state));
+        ctx.painter.draw_rect(rect, ctx.style.data.get(ctx.state));
         ctx.painter.draw_text(Rect::new_origin(size), data, self.size, Align::Left, false, ctx.style.text.get(ctx.state));
         size
     }

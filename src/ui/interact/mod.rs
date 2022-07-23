@@ -30,7 +30,7 @@ pub struct Response<'a, T, W: Widget<T>, K: Hash + Eq>
     state: WidgetState,
     map: Rc<RefCell<AHashMap<K, ResponseState>>>,
     key: Option<K>,
-    action: Option<Box<dyn FnMut() + 'a>>
+    action: Option<Box<dyn FnMut(&mut T) + 'a>>
 }
 
 impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
@@ -82,7 +82,7 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
                     self.state = WidgetState::Hover;
                     update = true;
                     maybe_button = Some(button);
-                    if let Some(action) = &mut self.action { action(); }
+                    if let Some(action) = &mut self.action { action(data); }
                     if let Some(key) = &self.key { self.map.borrow_mut().get_mut(key).unwrap().clicked = Some(button); }
                 }
                 if !pressed && self.inner.widget.response(data, maybe_button) { update = true; }
@@ -127,7 +127,7 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Response<'a, T, W, K>
         self
     }
 
-    pub fn action(mut self, action: impl FnMut() + 'a) -> Self
+    pub fn action(mut self, action: impl FnMut(&mut T) + 'a) -> Self
     {
         self.action = Some(Box::new(action));
         self

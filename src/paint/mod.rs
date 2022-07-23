@@ -109,6 +109,22 @@ impl<'a> Painter<'a>
         for i in [0, 1, 2, 2, 3, 0] { self.indices.push(i0 + i); }
     }
 
+    pub fn draw_rhombus(&mut self, rect: Rect, color: Color)
+    {
+        let min = self.origin + rect.min;
+        let max = self.origin + rect.max;
+        let size = rect.size();
+        let i0 = self.vertices.len() as u16;
+        for pos in
+        [
+            Vec2(min.0, min.1 + size.1 / 2.0), //left
+            Vec2(min.0 + size.0 / 2.0, max.1), //bottom
+            Vec2(max.0, min.1 + size.1 / 2.0), //right
+            Vec2(min.0 + size.0 / 2.0, min.1) //top
+        ] { self.vertices.push(Vertex { position: pos * self.scale, color, tex_coords: None }); }
+        for i in [0, 1, 2, 2, 3, 0] { self.indices.push(i0 + i); }
+    }
+
     pub fn draw_text(&mut self, rect: Rect, text: &str, size: TextSize, align: Align, auto_wrap: bool, color: Color)
     {
         self.add_glyphs(text, size);

@@ -1,4 +1,4 @@
-use super::{Ui, Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, MouseButton}, interact::ResponseState, paint::{Vec2, Rect}, Register, pods::WidgetPod};
+use super::{Ui, Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, MouseButton}, interact::ResponseState, paint::{Vec2, Rect}, Register, pods::{WidgetPod, WidgetPodS}};
 use std::{rc::Rc, cell::RefCell, hash::Hash};
 use ahash::AHashMap;
 
@@ -166,5 +166,85 @@ impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicCont
     pub fn new<U>(ui: &Ui<U, K>, generator: F) -> Self
     {
         Self { inner: WidgetPod::new(None), map: ui.responses.clone(), generator }
+    }
+}
+
+pub struct Folder<T, WH: Widget<T>, WB: Widget<T>>
+{
+    head: WidgetPodS<T, WH>,
+    body: WidgetPod<T, WB>,
+    expanded: bool
+}
+
+impl<T, WH: Widget<T>, WB: Widget<T>> Widget<T> for Folder<T, WH, WB>
+{
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        if self.expanded { self.body.widget.update(data) }
+        else { self.head.widget.update(data) }
+    }
+
+    #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
+    {
+        if self.expanded
+        {
+            let head_height = Vec2(0.0, self.head.size.1);
+            event.event.offset(-head_height);
+            self.body.widget.event(ctx, data, event);
+            event.event.offset(head_height);
+        }
+        else { self.head.widget.event(ctx, data, event); }
+    }
+
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
+    {
+        if self.expanded
+        {
+            let head_height = Vec2(0.0, self.head.size.1);
+            self.body.widget.layout(ctx, data, constraints - head_height) + head_height
+        }
+        else
+        {
+            self.head.size = self.head.widget.layout(ctx, data, constraints);
+            self.head.size
+        }
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
+    {
+        let size_head = self.head.widget.paint(ctx, data, self.head.size);
+        if self.expanded
+        {
+            let head_height = Vec2(0.0, size_head.1);
+            ctx.painter.add_offset(head_height);
+            let size_body = self.body.widget.paint(ctx, data, size - head_height);
+            ctx.painter.add_offset(-head_height);
+            let mut size_total = size_body + head_height;
+            size_total.1 = size_total.1.max(size_head.1);
+            size_total
+        } else { size_head }
+    }
+
+    #[inline]
+    fn response(&mut self, _: &mut T, button: Option<MouseButton>) -> bool
+    {
+        match button
+        {
+            None => { let update = self.expanded; self.expanded = false; update },
+            Some(MouseButton::Primary) => { self.expanded = !self.expanded; true },
+            _ => false
+        }
+    }
+}
+
+impl<T, WH: Widget<T>, WB: Widget<T>> Folder<T, WH, WB>
+{
+    pub fn new(head: WH, body: WB) -> Self
+    {
+        Self { head: WidgetPodS::new(head), body: WidgetPod::new(body), expanded: false }
     }
 }

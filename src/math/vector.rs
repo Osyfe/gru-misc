@@ -72,7 +72,7 @@ impl_div_assign!(Vec2, f32);
 
 impl Display for Vec2
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
+    fn fmt(&self, f: &mut Formatter) -> Result
     {
         write!(f, "({}\t{})", self.0, self.1)
     }
@@ -179,7 +179,7 @@ impl_div_assign!(Vec3, f32);
 
 impl Display for Vec3
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
+    fn fmt(&self, f: &mut Formatter) -> Result
     {
         write!(f, "({}\t{}\t{})", self.0, self.1, self.2)
     }
@@ -318,7 +318,7 @@ impl_div_assign!(Vec4, f32);
 
 impl Display for Vec4
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
+    fn fmt(&self, f: &mut Formatter) -> Result
     {
         write!(f, "({}\t{}\t{}\t{})", self.0, self.1, self.2, self.3)
     }

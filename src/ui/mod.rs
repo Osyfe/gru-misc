@@ -158,7 +158,7 @@ impl<'a, K: Hash + Eq> Query<'a, K>
 
 pub trait Widget<T>
 {
-    fn update(&mut self, _: &mut T) -> bool;
+    fn update(&mut self, data: &mut T) -> bool;
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut event::EventPod);
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: paint::Rect) -> paint::Vec2;
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: paint::Vec2) -> paint::Vec2;

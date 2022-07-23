@@ -31,6 +31,7 @@ pub struct StyleSet
 {
     pub bg: ColorSet,
     pub text: ColorSet,
+    pub data: ColorSet,
     pub top: Color
 }
 
@@ -51,6 +52,12 @@ impl Default for StyleSet
                 cold: Color::from_discrete_srgb(0, 0, 0, 255),
                 hot: Color::from_discrete_srgb(0, 0, 0, 255),
                 hover: Color::from_discrete_srgb(0, 0, 0, 255)
+            },
+            data: ColorSet
+            {
+                cold: Color::from_discrete_srgb(0, 0, 0, 255),
+                hot: Color::from_discrete_srgb(250, 200, 200, 255),
+                hover: Color::from_discrete_srgb(50, 150, 50, 255)
             },
             top: Color::from_discrete_srgb(150, 150, 150, 255)
         }

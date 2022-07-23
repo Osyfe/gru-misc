@@ -13,7 +13,7 @@ static_assertions::const_assert_eq!(std::mem::size_of::<Mat2>(), 16);
 
 impl Display for Mat2
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
+    fn fmt(&self, f: &mut Formatter) -> Result
     {
         write!(f, "({}\t{}\n {}\t{})", self.0.0, self.1.0, self.0.1, self.1.1)
     }
@@ -102,7 +102,7 @@ static_assertions::const_assert_eq!(std::mem::size_of::<Mat3>(), 36);
 
 impl Display for Mat3
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
+    fn fmt(&self, f: &mut Formatter) -> Result
     {
         write!
         (
@@ -258,7 +258,7 @@ static_assertions::const_assert_eq!(std::mem::size_of::<Mat4>(), 64);
 
 impl Display for Mat4
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result
+    fn fmt(&self, f: &mut Formatter) -> Result
     {
         write!
         (

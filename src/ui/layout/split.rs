@@ -28,21 +28,24 @@ impl<'a, T, const ROW: bool, const N: usize> Widget<T> for Split<'a, T, ROW, N>
         let mut size = if ROW { Vec2(0.0, constraints.max.1) } else { Vec2(constraints.max.0, 0.0) };
         for (WidgetPodP { widget, pos: w_pos, size: w_size, .. }, weight) in self.widgets.iter_mut().zip(self.weights.iter())
         {
+            let min =
+                if ROW { Vec2(constraints.min.0 * *weight, constraints.min.1) }
+                else { Vec2(constraints.min.0, constraints.min.1 * *weight) };
             let max =
-                if ROW { Vec2(constraints.max.0 * *weight, constraints.max.1) }
-                else { Vec2(constraints.max.0, constraints.max.1 * *weight) };
-            *w_size = widget.layout(ctx, data, Rect::new_origin(max));
+                if ROW { Vec2(constraints.min.0 * *weight, constraints.min.1) }
+                else { Vec2(constraints.min.0, constraints.min.1 * *weight) };
+            *w_size = widget.layout(ctx, data, Rect { min, max });
             if ROW
             {
                 *w_pos = Vec2(size.0, 0.0);
-                size.0 += w_size.0.max(max.0);
+                size.0 += w_size.0.max(max.0).min(min.0);
                 size.1 = w_size.1.max(size.1);
                 
             } else
             {
                 *w_pos = Vec2(0.0, size.1);
                 size.0 = w_size.0.max(size.0);
-                size.1 += w_size.1.max(max.1);
+                size.1 += w_size.1.max(max.1).min(min.1);
             }
         }
         size

@@ -314,12 +314,15 @@ impl Widget<f32> for Slider
         {
             Event::PointerClicked { pos, button: MouseButton::Primary, pressed } => if pressed
             {
-                let f = pos.0 / self.size.0;
-                if pos.1 >= 0.0 && pos.1 <= self.size.1 && f >= 0.0 && f <= 1.0
+                if pos.1 >= 0.0 && pos.1 <= self.size.1 //height bound
                 {
-                    self.dragged = true;
-                    *data = (f * (self.max - self.min) / self.step).round() * self.step + self.min;
-                    ctx.request_update();
+                    if pos.0 >= -0.5 && pos.0 <= self.size.0 + 0.5 { self.dragged = true; } //relaxed width bound
+                    let f = pos.0 / self.size.0;
+                    if f >= 0.0 && f <= 1.0 //strict width bound
+                    {
+                        *data = (f * (self.max - self.min) / self.step).round() * self.step + self.min;
+                        ctx.request_update();
+                    }
                 }
             } else if self.dragged
             {
@@ -347,7 +350,7 @@ impl Widget<f32> for Slider
         
     fn layout(&mut self, _: &mut LayoutCtx, _: &f32, constraints: Rect) -> Vec2
     {
-        Vec2(constraints.max.1, 1.0)
+        Vec2(constraints.max.0, 1.0)
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &f32, size: Vec2) -> Vec2

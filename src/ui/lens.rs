@@ -66,6 +66,16 @@ pub struct LensChain<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>>
     _phantom: (PhantomData<V>, PhantomData<U>, PhantomData<T>)
 }
 
+impl<V, U, T, L1: Lens<V, U> + Clone, L2: Lens<U, T> + Clone> Clone for LensChain<V, U, T, L1, L2>
+{
+    fn clone(&self) -> Self
+    {
+        Self { lens1: self.lens1.clone(), lens2: self.lens2.clone(), _phantom: (PhantomData, PhantomData, PhantomData) }
+    }
+}
+
+impl<V, U, T, L1: Lens<V, U> + Copy, L2: Lens<U, T> + Copy> Copy for LensChain<V, U, T, L1, L2> {}
+
 impl<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>> LensChain<V, U, T, L1, L2>
 {
     #[inline]
@@ -90,6 +100,7 @@ impl<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>> Lens<V, T> for LensChain<V, U, T, 
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct LensSlice(pub usize);
 
 impl<T, U: AsRef<[T]> + AsMut<[T]>> Lens<U, T> for LensSlice

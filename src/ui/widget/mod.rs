@@ -326,6 +326,11 @@ impl Widget<f32> for Slider
                 self.dragged = false;
                 ctx.request_update();
             },
+            Event::PointerGone => if self.dragged
+            {
+                self.dragged = false;
+                ctx.request_update();
+            }
             Event::PointerMoved { pos, .. } => if self.dragged
             {
                 let f = (pos.0 / self.size.0).max(0.0).min(1.0);

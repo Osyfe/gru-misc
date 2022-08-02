@@ -5,6 +5,8 @@ use std::{marker::PhantomData, borrow::Borrow, hash::Hash};
 pub trait WidgetExt<T>: Widget<T> + Sized
 {
     fn boxed<'a>(self) -> Box<dyn Widget<T> + 'a> where Self: 'a { Box::new(self) }
+    fn maybe<W2: Widget<()>>(self, none: W2) -> Maybe<T, Self, W2> { Maybe::new(self, none) }
+    fn maybe_empty(self) -> Maybe<T, Self, layout::Empty<()>> { Maybe::new_empty(self) }
     fn owning<U>(self, data: T) -> Owning<U, T, Self> { Owning::new(self, data) }
     fn lens<U, L: Lens<U, T>>(self, lens: L) -> lens::LensWrap<U, T, Self, L> { lens::LensWrap::new(self, lens) }
     fn fix(self, width: Option<f32>, height: Option<f32>) -> layout::Fix<T, Self> { layout::Fix::new(self, width, height) }
@@ -83,6 +85,71 @@ impl<'a, T> Widget<T> for Box<dyn Widget<T> + 'a>
     fn response(&mut self, data: &mut T, button: Option<MouseButton>) -> bool
     {
         self.as_mut().response(data, button)
+    }
+}
+
+pub struct Maybe<T, W1: Widget<T>, W2: Widget<()>>
+{
+    some: WidgetPod<T, W1>,
+    none: W2
+}
+
+impl<T, W1: Widget<T>, W2: Widget<()>> Widget<Option<T>> for Maybe<T, W1, W2>
+{
+    #[inline]
+    fn update(&mut self, data: &mut Option<T>) -> bool
+    {
+        match data
+        {
+            Some(data) => self.some.widget.update(data),
+            None => self.none.update(&mut ())
+        }	 
+    }
+
+    #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut Option<T>, event: &mut EventPod)
+    {
+        match data
+        {
+            Some(data) => self.some.widget.event(ctx, data, event),
+            None => self.none.event(ctx, &mut (), event)
+        }
+    }
+
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &Option<T>, constraints: Rect) -> Vec2
+    {
+        match data
+        {
+            Some(data) => self.some.widget.layout(ctx, data, constraints),
+            None => self.none.layout(ctx, &(), constraints)
+        }
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &Option<T>, size: Vec2) -> Vec2
+    {
+        match data
+        {
+            Some(data) => self.some.widget.paint(ctx, data, size),
+            None => self.none.paint(ctx, &(), size)
+        }
+    }
+}
+
+impl<T, W1: Widget<T>, W2: Widget<()>> Maybe<T, W1, W2>
+{
+    pub fn new(some: W1, none: W2) -> Self
+    {
+        Self { some: WidgetPod::new(some), none }
+    }
+}
+
+impl<T, W1: Widget<T>> Maybe<T, W1, layout::Empty<()>>
+{
+    pub fn new_empty(widget: W1) -> Self
+    {
+        Self { some: WidgetPod::new(widget), none: layout::Empty::new() }
     }
 }
 

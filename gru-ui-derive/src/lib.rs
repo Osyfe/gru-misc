@@ -34,7 +34,7 @@ pub fn lens_derive(input: TokenStream) -> TokenStream
                             }
 
                             #[inline]
-                            fn with_mut<A, F: FnOnce(&mut #ty) -> A>(&mut self, data: &mut #name#generics, f: F) -> A
+                            fn with_mut<A, F: FnOnce(&mut #ty) -> A>(&self, data: &mut #name#generics, f: F) -> A
                             {
                                 f(&mut data.#attribute)
                             }

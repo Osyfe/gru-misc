@@ -94,7 +94,7 @@ impl<V, U, T, L1: Lens<V, U>, L2: Lens<U, T>> Lens<V, T> for LensChain<V, U, T, 
     }
 
     #[inline]
-    fn with_mut<A, F: FnOnce(&mut T) -> A>(&mut self, data: &mut V, f: F) -> A
+    fn with_mut<A, F: FnOnce(&mut T) -> A>(&self, data: &mut V, f: F) -> A
     {
         self.lens1.with_mut(data, |data| self.lens2.with_mut(data, |data| f(data)))
     }
@@ -112,7 +112,7 @@ impl<T, U: AsRef<[T]> + AsMut<[T]>> Lens<U, T> for LensSlice
     }
 
     #[inline]
-    fn with_mut<A, F: FnOnce(&mut T) -> A>(&mut self, data: &mut U, f: F) -> A
+    fn with_mut<A, F: FnOnce(&mut T) -> A>(&self, data: &mut U, f: F) -> A
     {
         f(&mut data.as_mut()[self.0])
     }

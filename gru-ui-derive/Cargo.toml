@@ -3,7 +3,7 @@ name = "gru-ui-derive"
 version = "0.1.0"
 authors = ["Jannik Fehre"]
 edition = "2018"
-license = "Apache-2.0/MIT"
+publish = false
 
 [dependencies]
 syn = { version = "1.0.70" }

@@ -55,7 +55,7 @@ impl Default for StyleSet
             },
             data: ColorSet
             {
-                cold: Color::from_discrete_srgb(0, 0, 0, 255),
+                cold: Color::from_discrete_srgb(100, 100, 100, 255),
                 hot: Color::from_discrete_srgb(250, 200, 200, 255),
                 hover: Color::from_discrete_srgb(50, 150, 50, 255)
             },

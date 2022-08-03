@@ -6,6 +6,7 @@ type Task = Box<dyn FnOnce() -> Res + Send>;
 
 struct Worker
 {
+    handle: thread::JoinHandle<()>,
     submit: flume::Sender<(usize, Key, Task)>,
     free: bool
 }
@@ -41,6 +42,8 @@ pub struct Pool
     free: Vec<usize>,
     available: u32
 }
+
+pub struct Shutdown(Vec<thread::JoinHandle<()>>);
 
 impl Pool
 {
@@ -118,6 +121,24 @@ impl Pool
             Query::Done(ret)
         } else { Query::Pending }
     }
+
+    pub fn shutdown(self) -> Shutdown
+    {
+        Shutdown(Vec::from(self.worker).into_iter().map(|worker| worker.handle).collect())
+    }
+}
+
+impl Shutdown
+{
+    pub fn finished(&self) -> bool
+    {
+        self.0.iter().all(|handle| handle.is_finished())
+    }
+
+    pub fn join(self)
+    {
+        for handle in self.0 { handle.join().ok(); }
+    }
 }
 
 impl Worker
@@ -125,7 +146,7 @@ impl Worker
     fn new(id: usize, send: flume::Sender<(usize, Key, Res)>) -> Self
     {
         let (s1, r1) = flume::bounded::<(usize, Key, Task)>(1);
-        thread::Builder::new().name(format!("Worker {id}")).spawn(move ||
+        let handle = thread::Builder::new().name(format!("Worker {id}")).spawn(move ||
         {
             for (i, key, task) in r1
             {
@@ -133,7 +154,7 @@ impl Worker
                 if send.send((i, key, res)).is_err() { break; }
             }
         }).unwrap();
-        Self { submit: s1, free: true }
+        Self { handle, submit: s1, free: true }
     }
 }
 

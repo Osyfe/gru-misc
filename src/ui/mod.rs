@@ -203,7 +203,7 @@ pub struct PaintCtx<'a, 'b>
 pub trait Lens<U, T>
 {
     fn with<A, F: FnOnce(&T) -> A>(&self, data: &U, f: F) -> A;
-    fn with_mut<A, F: FnOnce(&mut T) -> A>(&mut self, data: &mut U, f: F) -> A;
+    fn with_mut<A, F: FnOnce(&mut T) -> A>(&self, data: &mut U, f: F) -> A;
 }
 
 pub use gru_ui_derive::Lens;

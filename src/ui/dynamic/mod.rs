@@ -1,4 +1,4 @@
-use super::{Ui, Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, MouseButton}, interact::ResponseState, paint::{Vec2, Rect}, Register, pods::{WidgetPod, WidgetPodS}};
+use super::{Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, MouseButton}, interact::ResponseState, paint::{Vec2, Rect}, Register, pods::{WidgetPod, WidgetPodS}};
 use std::{rc::Rc, cell::RefCell, hash::Hash};
 use ahash::AHashMap;
 
@@ -163,9 +163,9 @@ impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicCont
 
 impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicContent<W>> Dynamic<T, W, K, F>
 {
-    pub fn new<U>(ui: &Ui<U, K>, generator: F) -> Self
+    pub fn new(register: &Register<K>, generator: F) -> Self
     {
-        Self { inner: WidgetPod::new(None), map: ui.responses.clone(), generator }
+        Self { inner: WidgetPod::new(None), map: register.0.clone(), generator }
     }
 }
 

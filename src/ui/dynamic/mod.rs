@@ -169,6 +169,19 @@ impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicCont
     }
 }
 
+pub fn dynamic_init<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T, bool) -> DynamicContent<W>>(register: &Register<K>, mut generator: F, init: &mut T) -> Dynamic<T, W, K, impl FnMut(Register<K>, &mut T) -> DynamicContent<W>>
+{
+    let map = register.0.clone();
+    let register2 = Register(&map);
+    let widget = match generator(register2, init, true)
+    {
+        DynamicContent::Show(widget) => Some(widget),
+        _ => None
+    };
+    let generator = move |register: Register<'_, K>, data: &'_ mut T| generator(register, data, false);
+    Dynamic { inner: WidgetPod::new(widget), map, generator }
+}
+
 pub struct Folder<T, WH: Widget<T>, WB: Widget<T>>
 {
     head: WidgetPodS<T, WH>,

@@ -123,13 +123,13 @@ impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicCont
             DynamicContent::Keep => {},
             DynamicContent::Show(new) =>
             {
-                self.inner.widget = Some(new);
                 update = true;
+                self.inner.widget = Some(new);
             },
             DynamicContent::Hide =>
             {
+                if !self.inner.widget.is_none() { update = true; }
                 self.inner.widget = None;
-                update = false;
             }
         }
         if self.inner.widget.update(data) { update = true; }

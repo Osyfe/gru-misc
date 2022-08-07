@@ -29,7 +29,7 @@ pub struct Response<'a, T, W: Widget<T>, K: Hash + Eq>
     inner: WidgetPodS<T, W>,
     state: WidgetState,
     map: Rc<RefCell<AHashMap<K, ResponseState>>>,
-    key: Option<K>,
+    keys: Vec<K>,
     action: Option<Box<dyn FnMut(&mut T) + 'a>>
 }
 
@@ -83,7 +83,7 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
                     update = true;
                     maybe_button = Some(button);
                     if let Some(action) = &mut self.action { action(data); }
-                    if let Some(key) = &self.key { self.map.borrow_mut().get_mut(key).unwrap().clicked = Some(button); }
+                    for key in &self.keys { self.map.borrow_mut().get_mut(key).unwrap().clicked = Some(button); }
                 }
                 if !pressed && self.inner.widget.response(data, maybe_button) { update = true; }
             },
@@ -92,7 +92,7 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
         if update
         {
             ctx.request_update();
-            if let Some(key) = &self.key { self.map.borrow_mut().get_mut(key).unwrap().state = self.state; }
+            for key in &self.keys { self.map.borrow_mut().get_mut(key).unwrap().state = self.state; }
         }
     }
 
@@ -117,13 +117,13 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Response<'a, T, W, K>
 {
     pub fn new(widget: W, register: &Register<K>) -> Self
     {
-        Self { inner: WidgetPodS::new(widget), state: WidgetState::Cold, map: register.0.clone(), key: None, action: None }
+        Self { inner: WidgetPodS::new(widget), state: WidgetState::Cold, map: register.0.clone(), keys: Vec::new(), action: None }
     }
 
     pub fn query<L: ?Sized + ToOwned<Owned = K>>(mut self, key: &L) -> Self
     {
         self.map.borrow_mut().insert(key.to_owned(), ResponseState::new());
-        self.key = Some(key.to_owned());
+        self.keys.push(key.to_owned());
         self
     }
 

@@ -444,7 +444,8 @@ pub struct Edit
 {
     size: TextSize,
     active: bool,
-    filter: Box<dyn FnMut(char) -> bool>
+    filter: Box<dyn FnMut(char) -> bool>,
+    max_length: Option<usize>
 }
 
 impl Widget<String> for Edit
@@ -463,7 +464,7 @@ impl Widget<String> for Edit
             if let Event::Char(ch) = event.event
             {
                 event.used = true;
-                if (self.filter)(ch) { data.push(ch); }
+                if (self.filter)(ch) && self.max_length.map(|max| data.chars().count() < max).unwrap_or(true) { data.push(ch); }
                 ctx.request_update();
             }
             if let Event::Key { key: Key::Back, pressed: true } = event.event
@@ -507,9 +508,9 @@ impl Widget<String> for Edit
 
 impl Edit
 {
-    pub fn new(size: TextSize, filter: Option<Box<dyn FnMut(char) -> bool>>) -> Self
+    pub fn new(size: TextSize, filter: Option<Box<dyn FnMut(char) -> bool>>, max_length: Option<usize>) -> Self
     {
         let filter = filter.unwrap_or(Box::new(|_| true));
-        Self { size, active: false, filter }
+        Self { size, active: false, filter, max_length }
     }
 }

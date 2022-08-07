@@ -134,9 +134,21 @@ impl<'a, T, const ROW: bool> Flex<'a, T, ROW>
         self
     }
 
+    pub fn add_boxes<I: IntoIterator<Item = Box<dyn Widget<T> + 'a>>>(&mut self, widgets: I) -> &mut Self
+    {
+        for widget in widgets { self.widgets.push(WidgetPodP::new(widget)); }
+        self
+    }
+
     pub fn with_box(mut self, widget: Box<dyn Widget<T> + 'a>) -> Self
     {
         self.widgets.push(WidgetPodP::new(widget));
+        self
+    }
+
+    pub fn with_boxes<I: IntoIterator<Item = Box<dyn Widget<T> + 'a>>>(mut self, widgets: I) -> Self
+    {
+        for widget in widgets { self.widgets.push(WidgetPodP::new(widget)); }
         self
     }
 

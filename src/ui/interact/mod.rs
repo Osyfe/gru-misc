@@ -1,5 +1,5 @@
 use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, Event, MouseButton}, paint::{Vec2, Rect}, pods::WidgetPodS};
-use std::{hash::Hash, rc::Rc, cell::RefCell};
+use std::{hash::Hash, collections::hash_map::Entry, rc::Rc, cell::RefCell};
 use ahash::AHashMap;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -122,7 +122,7 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Response<'a, T, W, K>
 
     pub fn query<L: ?Sized + ToOwned<Owned = K>>(mut self, key: &L) -> Self
     {
-        self.map.borrow_mut().insert(key.to_owned(), ResponseState::new());
+        if let Entry::Vacant(entry) = self.map.borrow_mut().entry(key.to_owned()) { entry.insert(ResponseState::new()); }
         self.keys.push(key.to_owned());
         self
     }

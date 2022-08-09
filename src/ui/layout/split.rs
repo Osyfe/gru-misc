@@ -8,11 +8,6 @@ pub struct Split<'a, T, const ROW: bool, const N: usize>
 
 impl<'a, T, const ROW: bool, const N: usize> Widget<T> for Split<'a, T, ROW, N>
 {
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.widgets.iter_mut().map(|pod| pod.widget.update(data)).any(std::convert::identity)
-    }
-    
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         for WidgetPodP { widget, pos: w_pos, .. } in &mut self.widgets
@@ -21,6 +16,11 @@ impl<'a, T, const ROW: bool, const N: usize> Widget<T> for Split<'a, T, ROW, N>
             widget.event(ctx, data, event);
             event.event.offset(*w_pos);
         }
+    }
+    
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.widgets.iter_mut().map(|pod| pod.widget.update(data)).any(std::convert::identity)
     }
 
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2

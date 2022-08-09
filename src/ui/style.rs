@@ -73,15 +73,15 @@ pub struct Style<T, W: Widget<T>, F: Fn(&mut StyleSet)>
 impl<T, W: Widget<T>, F: Fn(&mut StyleSet)> Widget<T> for Style<T, W, F>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.inner.widget.update(data)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         self.inner.widget.event(ctx, data, event)
+    }
+
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.inner.widget.update(data)
     }
 
     #[inline]

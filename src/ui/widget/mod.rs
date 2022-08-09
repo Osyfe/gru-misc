@@ -25,15 +25,15 @@ impl<T, W: Widget<T> + Sized> WidgetExt<T> for W {}
 impl<T, W: Widget<T>> Widget<T> for Option<W>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.as_mut().map(|widget| widget.update(data)).unwrap_or(false)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         self.as_mut().map(|widget| widget.event(ctx, data, event));
+    }
+
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.as_mut().map(|widget| widget.update(data)).unwrap_or(false)
     }
 
     #[inline]
@@ -58,15 +58,15 @@ impl<T, W: Widget<T>> Widget<T> for Option<W>
 impl<'a, T> Widget<T> for Box<dyn Widget<T> + 'a>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.as_mut().update(data)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         self.as_mut().event(ctx, data, event);
+    }
+
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.as_mut().update(data)
     }
 
     #[inline]
@@ -97,16 +97,6 @@ pub struct Maybe<T, W1: Widget<T>, W2: Widget<()>>
 impl<T, W1: Widget<T>, W2: Widget<()>> Widget<Option<T>> for Maybe<T, W1, W2>
 {
     #[inline]
-    fn update(&mut self, data: &mut Option<T>) -> bool
-    {
-        match data
-        {
-            Some(data) => self.some.widget.update(data),
-            None => self.none.update(&mut ())
-        }	 
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut Option<T>, event: &mut EventPod)
     {
         match data
@@ -114,6 +104,16 @@ impl<T, W1: Widget<T>, W2: Widget<()>> Widget<Option<T>> for Maybe<T, W1, W2>
             Some(data) => self.some.widget.event(ctx, data, event),
             None => self.none.event(ctx, &mut (), event)
         }
+    }
+
+    #[inline]
+    fn update(&mut self, data: &mut Option<T>) -> bool
+    {
+        match data
+        {
+            Some(data) => self.some.widget.update(data),
+            None => self.none.update(&mut ())
+        }	 
     }
 
     #[inline]
@@ -163,15 +163,15 @@ pub struct Owning<U, T, W: Widget<T>>
 impl<U, T, W: Widget<T>> Widget<U> for Owning<U, T, W>
 {
     #[inline]
-    fn update(&mut self, _: &mut U) -> bool
-    {
-        self.inner.widget.update(&mut self.data)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, _: &mut U, event: &mut EventPod)
     {
         self.inner.widget.event(ctx, &mut self.data, event)
+    }
+
+    #[inline]
+    fn update(&mut self, _: &mut U) -> bool
+    {
+        self.inner.widget.update(&mut self.data)
     }
 
     #[inline]
@@ -204,15 +204,15 @@ pub struct Bg<T, W: Widget<T>, const INNER: bool>
 impl<T, W: Widget<T>, const INNER: bool> Widget<T> for Bg<T, W, INNER>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.inner.widget.update(data)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         self.inner.widget.event(ctx, data, event);
+    }
+
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.inner.widget.update(data)
     }
 
     #[inline]
@@ -275,13 +275,13 @@ pub struct Label<T: Borrow<str>>
 impl<T: Borrow<str>> Widget<T> for Label<T>
 {
     #[inline]
+    fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod) { }
+
+    #[inline]
     fn update(&mut self, _: &mut T) -> bool
     {
         false
     }
-
-    #[inline]
-    fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod) { }
 
     #[inline]
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, _: Rect) -> Vec2
@@ -317,13 +317,13 @@ pub struct Check
 impl Widget<bool> for Check
 {
     #[inline]
+    fn event(&mut self, _: &mut EventCtx, _: &mut bool, _: &mut EventPod) { }
+
+    #[inline]
     fn update(&mut self, _: &mut bool) -> bool
     {
         false
     }
-
-    #[inline]
-    fn event(&mut self, _: &mut EventCtx, _: &mut bool, _: &mut EventPod) { }
 
     #[inline]
     fn layout(&mut self, _: &mut LayoutCtx, _: &bool, _: Rect) -> Vec2
@@ -370,11 +370,6 @@ pub struct Slider
 
 impl Widget<f32> for Slider
 {
-    fn update(&mut self, _: &mut f32) -> bool
-    {
-        false
-    }
-
     fn event(&mut self, ctx: &mut EventCtx, data: &mut f32, event: &mut EventPod)
     {
         match event.event
@@ -414,6 +409,11 @@ impl Widget<f32> for Slider
             _ => {}
         }
     }
+
+    fn update(&mut self, _: &mut f32) -> bool
+    {
+        false
+    }
         
     fn layout(&mut self, _: &mut LayoutCtx, _: &f32, constraints: Rect) -> Vec2
     {
@@ -451,12 +451,6 @@ pub struct Edit
 impl Widget<String> for Edit
 {
     #[inline]
-    fn update(&mut self, _: &mut String) -> bool
-    {
-        false
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut String, event: &mut EventPod)
     {
         if self.active && !event.used
@@ -474,6 +468,12 @@ impl Widget<String> for Edit
                 ctx.request_update();
             }
         }
+    }
+
+    #[inline]
+    fn update(&mut self, _: &mut String) -> bool
+    {
+        false
     }
 
     #[inline]

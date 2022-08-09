@@ -36,12 +36,6 @@ pub struct Response<'a, T, W: Widget<T>, K: Hash + Eq>
 impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.inner.widget.update(data)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         self.inner.widget.event(ctx, data, event);
@@ -94,6 +88,12 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
             ctx.request_update();
             for key in &self.keys { self.map.borrow_mut().get_mut(key).unwrap().state = self.state; }
         }
+    }
+    
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.inner.widget.update(data)
     }
 
     #[inline]

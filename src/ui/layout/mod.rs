@@ -23,12 +23,12 @@ pub struct Empty<T>
 
 impl<T> Widget<T> for Empty<T>
 {
+    fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod) { }
+
     fn update(&mut self, _: &mut T) -> bool
     {
         false
     }
-
-    fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod) { }
 
     fn layout(&mut self, _: &mut LayoutCtx, _: &T, constraints: Rect) -> Vec2
     {
@@ -59,15 +59,15 @@ pub struct Fix<T, W: Widget<T>>
 impl<T, W: Widget<T>> Widget<T> for Fix<T, W>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.inner.widget.update(data)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         self.inner.widget.event(ctx, data, event);
+    }
+
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.inner.widget.update(data)
     }
 
     #[inline]
@@ -111,17 +111,17 @@ pub struct Align<T, W: Widget<T>>
 impl<T, W: Widget<T>> Widget<T> for Align<T, W>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.inner.widget.update(data)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         event.event.offset(-self.inner.pos);
         self.inner.widget.event(ctx, data, event);
         event.event.offset(self.inner.pos);
+    }
+
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.inner.widget.update(data)
     }
 
     #[inline]
@@ -178,17 +178,17 @@ pub struct Padding<T, W: Widget<T>>
 impl<T, W: Widget<T>> Widget<T> for Padding<T, W>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        self.inner.widget.update(data)
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         event.event.offset(-self.front);
         self.inner.widget.event(ctx, data, event);
         event.event.offset(self.front);
+    }
+
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.inner.widget.update(data)
     }
 
     #[inline]

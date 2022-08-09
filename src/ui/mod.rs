@@ -100,7 +100,7 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
         for (widget, active_fetch, active) in &mut self.widgets
         {
             let new_active = active_fetch(data);
-            if (*active != new_active) || (*active && widget.update(data)) { self.update_requested = true; }
+            if *active != new_active { self.update_requested = true; }
             if *active && !new_active { widget.event(&mut EventCtx { update_requested: &mut self.update_requested }, data, &mut gone); }
             *active = new_active;
         }
@@ -117,6 +117,11 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
             }
             event.event.scale(scale);
             self.events.push(event);
+        }
+
+        for (widget, _, active) in &mut self.widgets
+        {
+            if *active && widget.update(data) { self.update_requested = true; }
         }
 
         if self.update_requested
@@ -158,8 +163,8 @@ impl<'a, K: Hash + Eq> Query<'a, K>
 
 pub trait Widget<T>
 {
-    fn update(&mut self, data: &mut T) -> bool;
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut event::EventPod);
+    fn update(&mut self, data: &mut T) -> bool;
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: paint::Rect) -> paint::Vec2;
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: paint::Vec2) -> paint::Vec2;
     fn response(&mut self, _: &mut T, _: Option<event::MouseButton>) -> bool { false }

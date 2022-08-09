@@ -11,6 +11,12 @@ pub struct Watch<T: Clone + PartialEq, W: Widget<T>>
 impl<T: Clone + PartialEq, W: Widget<T>> Widget<T> for Watch<T, W>
 {
     #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
+    {
+        self.inner.widget.event(ctx, data, event)
+    }
+
+    #[inline]
     fn update(&mut self, data: &mut T) -> bool
     {
         let update = match &self.copy
@@ -20,12 +26,6 @@ impl<T: Clone + PartialEq, W: Widget<T>> Widget<T> for Watch<T, W>
         };
         if update { self.copy = Some(data.clone()); }
         update
-    }
-
-    #[inline]
-    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
-    {
-        self.inner.widget.event(ctx, data, event)
     }
 
     #[inline]
@@ -65,15 +65,15 @@ pub struct Transform<'a, U, T, W: Widget<T>>
 impl<'a, U, T, W: Widget<T>> Widget<U> for Transform<'a, U, T, W>
 {
     #[inline]
-    fn update(&mut self, _: &mut U) -> bool
-    {
-        false
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, _: &mut U, event: &mut EventPod)
     {
         self.inner.event(ctx, &mut self.data, event)
+    }
+
+    #[inline]
+    fn update(&mut self, _: &mut U) -> bool
+    {
+        false
     }
 
     #[inline]
@@ -115,6 +115,12 @@ pub struct Dynamic<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) 
 impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicContent<W>> Widget<T> for Dynamic<T, W, K, F>
 {
     #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
+    {
+        self.inner.widget.event(ctx, data, event)
+    }
+
+    #[inline]
     fn update(&mut self, data: &mut T) -> bool
     {
         let mut update = false;
@@ -134,12 +140,6 @@ impl<T, W: Widget<T>, K: Hash + Eq, F: FnMut(Register<K>, &mut T) -> DynamicCont
         }
         if self.inner.widget.update(data) { update = true; }
         update
-    }
-
-    #[inline]
-    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
-    {
-        self.inner.widget.event(ctx, data, event)
     }
 
     #[inline]
@@ -192,13 +192,6 @@ pub struct Folder<T, WH: Widget<T>, WB: Widget<T>>
 impl<T, WH: Widget<T>, WB: Widget<T>> Widget<T> for Folder<T, WH, WB>
 {
     #[inline]
-    fn update(&mut self, data: &mut T) -> bool
-    {
-        if self.expanded { self.body.widget.update(data) }
-        else { self.head.widget.update(data) }
-    }
-
-    #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
         if self.expanded
@@ -209,6 +202,13 @@ impl<T, WH: Widget<T>, WB: Widget<T>> Widget<T> for Folder<T, WH, WB>
             event.event.offset(head_height);
         }
         else { self.head.widget.event(ctx, data, event); }
+    }
+    
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        if self.expanded { self.body.widget.update(data) }
+        else { self.head.widget.update(data) }
     }
 
     #[inline]

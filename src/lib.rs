@@ -2,6 +2,8 @@
 pub mod math;
 #[cfg(feature = "text")]
 pub mod text;
+#[cfg(feature = "text2")]
+pub mod text2;
 #[cfg(feature = "paint")]
 pub mod paint;
 #[cfg(feature = "ui")]

@@ -11,6 +11,7 @@ publish = false
 [features]
 math = ["static_assertions"]
 text = ["ab_glyph", "ahash"]
+text2 = ["ttf-parser", "ahash", "math"]
 paint = ["text", "math", "color"]
 ui = ["gru-ui-derive", "paint", "copypasta"]
 thread = ["flume"]
@@ -22,6 +23,7 @@ serde_impl = ["serde", "ahash/serde"]
 [dependencies]
 static_assertions = { version = "1.1.0", optional = true }
 ab_glyph = { version = "0.2.15", optional = true }
+ttf-parser = { version = "0.15.2", optional = true }
 ahash = { version = "0.7.6", optional = true }
 gru-ui-derive = { path = "gru-ui-derive", optional = true }
 copypasta = { version = "0.7.1", optional = true }
@@ -31,3 +33,6 @@ rand_raw = { package = "rand", version = "0.8.5", default-features = false, opti
 rand_xoshiro = { version = "0.6.0", optional = true }
 rand_distr = { version = "0.4.3", default-features = false, features = ["std_math"], optional = true }
 serde = { version = "1.0.137", default-features = false, features = ["derive", "std"], optional = true }
+
+[dev-dependencies]
+image = { version = "0.24.3", default-features = false, features = ["png"] }

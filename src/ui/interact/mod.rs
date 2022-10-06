@@ -1,4 +1,4 @@
-use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, Event, MouseButton}, paint::{Vec2, Rect}, pods::WidgetPodS};
+use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, Event, MouseButton, Key}, paint::{Vec2, Rect}, pods::WidgetPodS};
 use std::{hash::Hash, collections::hash_map::Entry, rc::Rc, cell::RefCell};
 use ahash::AHashMap;
 
@@ -13,14 +13,21 @@ pub enum WidgetState
 pub struct ResponseState
 {
     pub state: WidgetState,
-    pub clicked: Option<MouseButton>
+    pub clicked: Option<MouseButton>,
+    pub pressed: Option<(Key, bool)>
 }
 
 impl ResponseState
 {
     pub(crate) fn new() -> Self
     {
-        Self { state: WidgetState::Cold, clicked: None }
+        Self { state: WidgetState::Cold, clicked: None, pressed: None }
+    }
+
+    pub(crate) fn reset(&mut self)
+    {
+        self.clicked = None;
+        self.pressed = None;
     }
 }
 
@@ -80,6 +87,10 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Widget<T> for Response<'a, T, W, K>
                     for key in &self.keys { self.map.borrow_mut().get_mut(key).unwrap().clicked = Some(button); }
                 }
                 if !pressed && self.inner.widget.response(data, maybe_button) { update = true; }
+            },
+            Event::Key { key: keycode, pressed } =>
+            {
+                for key in &self.keys { self.map.borrow_mut().get_mut(key).unwrap().pressed = Some((keycode, pressed)); }
             },
             _ => {}
         }

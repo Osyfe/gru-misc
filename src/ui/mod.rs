@@ -96,7 +96,7 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
         if old_config != self.config_current { self.update_requested = true; }
 
         let mut gone = event::EventPod::new(event::Event::PointerGone);
-        for response in self.responses.borrow_mut().values_mut() { response.clicked = None; }
+        for response in self.responses.borrow_mut().values_mut() { response.reset(); }
         for (widget, active_fetch, active) in &mut self.widgets
         {
             let new_active = active_fetch(data);

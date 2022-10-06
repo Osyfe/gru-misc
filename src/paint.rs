@@ -1,5 +1,4 @@
-mod math;
-pub use math::*;
+pub use crate::math::{Vec2, Rect};
 pub use crate::color::Color;
 
 use crate::text::{Font, AtlasBuilder, Align, Layout};

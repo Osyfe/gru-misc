@@ -7,8 +7,11 @@ windows icon:
 
 text:
 	kerning (bitmap gen and glyph placing)?
+	sdf
 
 ui:
 	icon
 	drop down etc.
 	split secondary align
+
+perm utils

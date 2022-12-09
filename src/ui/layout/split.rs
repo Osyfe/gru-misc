@@ -32,8 +32,8 @@ impl<'a, T, const ROW: bool, const N: usize> Widget<T> for Split<'a, T, ROW, N>
                 if ROW { Vec2(constraints.min.0 * *weight, constraints.min.1) }
                 else { Vec2(constraints.min.0, constraints.min.1 * *weight) };
             let max =
-                if ROW { Vec2(constraints.min.0 * *weight, constraints.min.1) }
-                else { Vec2(constraints.min.0, constraints.min.1 * *weight) };
+                if ROW { Vec2(constraints.max.0 * *weight, constraints.max.1) }
+                else { Vec2(constraints.max.0, constraints.max.1 * *weight) };
             *w_size = widget.layout(ctx, data, Rect { min, max });
             if ROW
             {

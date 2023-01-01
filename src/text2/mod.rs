@@ -1,6 +1,4 @@
-mod sdf;
-
-use ttf_parser::Face;
+use easy_signed_distance_field as sdf;
 use ahash::{AHashSet, AHashMap};
 use crate::math::{Vec2, Rect};
 #[cfg(feature = "serde")]

@@ -216,8 +216,8 @@ impl<T, WH: Widget<T>, WB: Widget<T>> Widget<T> for Folder<T, WH, WB>
     {
         if self.expanded
         {
-            let head_height = Vec2(0.0, self.head.size.1);
-            self.body.widget.layout(ctx, data, constraints - head_height) + head_height
+            let Vec2(width, height) = self.body.widget.layout(ctx, data, constraints - Vec2(0.0, self.head.size.1));
+            Vec2(width.max(self.head.size.0), height + self.head.size.1)
         }
         else
         {

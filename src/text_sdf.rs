@@ -1,20 +1,19 @@
 use easy_signed_distance_field as sdf;
 use ahash::{AHashSet, AHashMap};
-use crate::math::{Vec2, Rect};
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
 
-pub struct Font<'a>
+pub struct Font
 {
-    face: Face<'a>
+    font: sdf::Font
 }
 
-impl<'a> Font<'a>
+impl Font
 {
-    pub fn new(data: &'a [u8]) -> Self
+    pub fn new(data: &[u8]) -> Self
     {
-        let face = Face::from_slice(data, 0).unwrap();
-        Self { face }
+        let font = sdf::Font::from_bytes(data, sdf::FontSettings::default()).unwrap();
+        Self { font }
     }
 
     pub fn digits() -> AHashSet<char>
@@ -248,20 +247,21 @@ impl Atlas
 	}
 }
 
-pub struct AtlasBuilder<'a>
+pub struct AtlasBuilder
 {
-	face: Face<'a>,
+	font: sdf::Font,
 	texture_size: u32,
 	padding: u32,
 	p0: (u32, u32),
 	row_height: u32,
 	layers: Vec<Vec<u8>>,
 	coords_norm: f32,
-    scale: f32,
+    px: f32,
+	height: f32,
 	atlas: Atlas
 }
 
-impl<'a> AtlasBuilder<'a>
+impl AtlasBuilder
 {
 	fn new_layer(layers: &mut Vec<Vec<u8>>, texture_size: u32)
 	{
@@ -270,35 +270,31 @@ impl<'a> AtlasBuilder<'a>
 		layers.push(layer);
 	}
 
-	//scale = screen_scale_factor * text_pixel_height = pixel_height for standard display
-	pub fn new(font: Font<'a>, scale: f32, texture_size: u32, padding: u32) -> Self
+	pub fn new(font: Font, px: f32, texture_size: u32, padding: u32) -> Self
 	{
 		let mut layers = Vec::new();
 		Self::new_layer(&mut layers, texture_size);
 		let coords_norm = 1.0 / texture_size as f32;
-        let face = font.face;
-		let atlas =
+        let font = font.font;
+		let (atlas, height) =
 		{
-			//https://docs.rs/ab_glyph/0.2.11/ab_glyph/trait.Font.html#units
-			let px_per_em = scale * (96.0 / 72.0);
-			let height = face.height() as f32;
-			let units_per_em = face.units_per_em() as f32;
-			let scale = px_per_em * height / units_per_em;
-			//init metrics
-			let ascent = face.line_gap() as f32 / scale;
-			let space = face.glyph_hor_advance(face.glyph_index(' ').unwrap()).unwrap() as f32 / scale;
-			Atlas { glyphs: AHashMap::new(), ascent, space, default_glyph: None }
+			let metrics = font.horizontal_line_metrics(px);
+			let height = metrics.new_line_size;
+			let ascent = metrics.ascent / height;
+			let space = font.metrics(' ', px).unwrap().advance_width / height;
+			(Atlas { glyphs: AHashMap::new(), ascent, space, default_glyph: None }, height)
 		};
 		Self
 		{
-			face,
+			font,
 			texture_size,
 			padding,
 			p0: (0, 0),
 			row_height: 0,
 			layers,
 			coords_norm,
-            scale,
+            px,
+			height,
 			atlas
 		}
 	}
@@ -314,56 +310,64 @@ impl<'a> AtlasBuilder<'a>
 			.into_iter()
 			.map(|ch|
 			{
-                let glyph = self.face.glyph_index(ch).expect(&format!("AtlasBuild::add: Font does not contain \'{ch}\'."));
-				let bounds = self.face.glyph_bounding_box(glyph).expect(&format!("AtlasBuilder::add: \'{ch}\' has no bounding box."));
-				let bounds = Rect { min: Vec2(bounds.x_min as f32, bounds.y_min as f32) * self.scale, max: Vec2(bounds.x_max as f32, bounds.y_max as f32) * self.scale };
-				(ch, glyph, bounds)
+				let metrics = self.font.metrics(ch, self.px).expect(&format!("AtlasBuild::add: Font does not contain \'{ch}\'."));
+				(ch, metrics)
 			})
 			.collect();
 		 //improve packaging
-		chars.sort_by(|(_, _, b1), (_, _, b2)| (b1.height() as u32).cmp(&(b2.height() as u32)));
+		chars.sort_by(|(_, m1), (_, m2)| m1.height.cmp(&m2.height));
 		let mut i0 = 0;
 		while
 			i0 < chars.len() - 1
-		 && (chars[i0].2.height() as u32) < self.row_height
-		 && (chars[i0 + 1].2.height() as u32) < self.row_height
+		 && (chars[i0].1.height as u32) < self.row_height
+		 && (chars[i0 + 1].1.height as u32) < self.row_height
 		{ i0 = (i0 + 1) % chars.len(); }
 		chars.rotate_left(i0);
 
 		let (x0, y0) = (&mut self.p0.0, &mut self.p0.1);
-		for (ch, glyph, bounds) in chars
+		for (ch, metrics) in chars
 		{
-			let width = bounds.width().ceil() as u32;
-			let height = bounds.height().ceil() as u32;
-			if *x0 + width >= self.texture_size
+			let (sdf_width, sdf_height) = (metrics.width as u32, metrics.height as u32);
+			let sdf_padding = 1;//(self.px as u32 / 10).min(sdf_width / 4).min(sdf_height / 4).max(1); //does not work with coords...
+			let (ch_width, ch_height) = (sdf_width - 2 * sdf_padding, sdf_height - 2 * sdf_padding);
+			let (xmin, ymax) = (metrics.bounds.xmin, -metrics.bounds.ymin);
+			let (xmax, ymin) = (xmin + metrics.bounds.width, ymax - metrics.bounds.height);
+			if *x0 + sdf_width >= self.texture_size
 			{
-				if *x0 == 0 { panic!("AtlasBuilder::add: \'ch\' is too wide."); }
+				if sdf_width >= self.texture_size { panic!("AtlasBuilder::add: \'{ch}\' is too wide."); }
 				*x0 = 0;
 				*y0 += self.row_height + self.padding;
 				self.row_height = 0;
 			}
-            self.row_height = self.row_height.max(height);
-			if *y0 + height >= self.texture_size
+            self.row_height = self.row_height.max(sdf_height);
+			if *y0 + sdf_height >= self.texture_size
 			{
-				if *y0 == 0 { panic!("AtlasBuilder::add: \'{ch}\' is too high."); }
+				if sdf_height >= self.texture_size { panic!("AtlasBuilder::add: \'{ch}\' is too high."); }
 				*x0 = 0;
 				*y0 = 0;
 				Self::new_layer(&mut self.layers, self.texture_size);
 			}
 			let layer = self.layers.len() - 1;
 			let buffer = &mut self.layers[layer];
-			sdf::sdf(&self.face, glyph, bounds, self.scale, |x, y, d| buffer[((y + *y0) * self.texture_size + x + *x0) as usize] = d);
+			let sdf = self.font.sdf_generate(self.px, sdf_padding as i32, 1.0, ch).unwrap().1;
+			for y in 0..sdf.height
+			{
+				for x in 0..sdf.width
+				{
+					buffer[((y + *y0) * self.texture_size + x + *x0) as usize] = (sdf.buffer[(y * sdf.width + x) as usize] * 255.0) as u8;
+				}
+			}
     		let glyph = Glyph
 			{
-				coords_min: ((*x0 as f32 - 0.5) * self.coords_norm, (*y0 as f32 - 0.5) * self.coords_norm),
-				coords_max: ((*x0 as f32 + bounds.width() as f32 + 0.5) * self.coords_norm, (*y0 as f32 + bounds.height() as f32 + 0.5) * self.coords_norm),
+				coords_min: (((*x0 + sdf_padding) as f32 - 0.5) * self.coords_norm, ((*y0 + sdf_padding) as f32 - 0.5) * self.coords_norm),
+				coords_max: (((*x0 + sdf_padding + ch_width) as f32 + 0.5) * self.coords_norm, ((*y0 + sdf_padding + ch_height) as f32 + 0.5) * self.coords_norm),
 				layer: layer as u32,
-				pos_min: (bounds.min.0 as f32 / self.scale, bounds.min.1 as f32 / self.scale),
-				pos_max: (bounds.max.0 as f32 / self.scale, bounds.max.1 as f32 / self.scale),
-				h_advance: self.face.glyph_hor_advance(glyph).unwrap() as f32 / self.scale
+				pos_min: (xmin / self.height, ymin / self.height),
+				pos_max: (xmax / self.height, ymax / self.height),
+				h_advance: metrics.advance_width / self.height
 			};
 			self.atlas.glyphs.insert(ch, glyph);
-			*x0 += bounds.width() as u32 + self.padding;
+			*x0 += sdf_width + self.padding;
 		}
 		true
 	}
@@ -383,9 +387,9 @@ impl<'a> AtlasBuilder<'a>
 		&mut self.atlas
 	}
 
-	pub fn into_font(self) -> Font<'a>
+	pub fn into_font(self) -> Font
 	{
-		Font { face: self.face }
+		Font { font: self.font }
 	}
 
 	pub fn finish(self) -> (Vec<Vec<u8>>, Atlas)
@@ -431,7 +435,7 @@ mod tests
 	#[test]
 	fn all_letters()
 	{
-		let (mut sdf, _) = Atlas::new(Font::new(include_bytes!("../res/futuram.ttf")), 0.1, Font::all_letters(), 1024, 10);
+		let (mut sdf, _) = Atlas::new(Font::new(include_bytes!("res/futuram.ttf")), 64.0, &(&Font::digits() | &Font::all_letters()) | &Font::text_special_characters(), 1024, 5);
 		assert_eq!(sdf.len(), 1);
 		let image = GrayImage::from_raw(1024, 1024, sdf.pop().unwrap()).unwrap();
 		image.save_with_format("all_letters.png", ImageFormat::Png).unwrap();

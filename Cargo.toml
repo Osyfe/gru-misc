@@ -10,9 +10,9 @@ publish = false
 
 [features]
 math = ["static_assertions"]
-text = ["ab_glyph", "ahash"]
-text2 = ["easy-signed-distance-field", "ahash", "math"]
-paint = ["text", "math", "color"]
+text_rast = ["ab_glyph", "ahash"]
+text_sdf = ["easy-signed-distance-field", "ahash", "math"]
+paint = ["text_sdf", "math", "color"]
 ui = ["gru-ui-derive", "paint", "copypasta"]
 thread = ["flume"]
 time = ["spin_sleep"]

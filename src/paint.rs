@@ -1,7 +1,7 @@
 pub use crate::math::{Vec2, Rect};
 pub use crate::color::Color;
 
-use crate::text::{Font, AtlasBuilder, Align, Layout};
+use crate::text_sdf::{Font, AtlasBuilder, Align, Layout};
 
 pub const TEXTURE_SIZE: u32 = 1024;
 const TEXTURE_PADDING: u32 = 5;
@@ -51,10 +51,10 @@ pub struct Frame<'a>
     pub font_data: &'a Vec<Vec<u8>>
 }
 
-pub struct Painter<'a>
+pub struct Painter
 {
     text_version: u64,
-    text: Option<AtlasBuilder<'a, {TextSize::NUM}>>,
+    text: Option<AtlasBuilder>,
     origin: Vec2,
     scale: f32,
     vertices: Vec<Vertex>,
@@ -62,20 +62,17 @@ pub struct Painter<'a>
     new: bool
 }
 
-impl<'a> Painter<'a>
+impl Painter
 {
-    fn atlas_builder(font: Font<'a>, scale: f32) -> AtlasBuilder<'a, {TextSize::NUM}>
+    fn atlas_builder(font: Font, scale: f32) -> AtlasBuilder
     {
-        let mut builder = AtlasBuilder::new(font, TextSize::SIZES.map(|size| size * scale), TEXTURE_SIZE, TEXTURE_PADDING);
-        for i in 0..TextSize::NUM
-        {
-            builder.add(i, std::iter::once('?'));
-            builder.atlas_mut(i).default(Some('?'));
-        }
+        let mut builder = AtlasBuilder::new(font, 3.0 * scale, TEXTURE_SIZE, TEXTURE_PADDING);
+        builder.add(&(&Font::digits() | &Font::all_letters()) | &Font::text_special_characters());
+        builder.atlas_mut().default(Some('?'));
         builder
     }
 
-    pub fn new(font: Font<'a>) -> Self
+    pub fn new(font: Font) -> Self
     {
         Self
         {
@@ -126,14 +123,14 @@ impl<'a> Painter<'a>
 
     pub fn draw_text(&mut self, rect: Rect, text: &str, size: TextSize, align: Align, auto_wrap: bool, color: Color)
     {
-        self.add_glyphs(text, size);
+        self.add_glyphs(text);
         let atlas_builder = self.text.as_mut().unwrap();
         let i = size.i();
         let size = TextSize::SIZES[i];
         let width = (rect.max.0 - rect.min.0) / size;
         let offset = self.origin + rect.min + Vec2(0.0, (rect.max.1 - rect.min.1 - size) / 2.0);
         let i0 = self.vertices.len() as u16;
-        atlas_builder.atlas(i).text
+        atlas_builder.atlas().text
         (
             text,
             Layout { width, align, auto_wrap },
@@ -156,17 +153,17 @@ impl<'a> Painter<'a>
     {
         let new = self.new;
         self.new = false;
-        Frame { new, vertices: &self.vertices, indices: &self.indices, font_version: self.text_version, font_data: self.text.as_ref().unwrap().bitmap() }
+        Frame { new, vertices: &self.vertices, indices: &self.indices, font_version: self.text_version, font_data: self.text.as_ref().unwrap().sdf() }
     }
 
     pub fn text_width(&mut self, text: &str, size: TextSize) -> f32
     {
-        self.add_glyphs(text, size);
-        self.text.as_ref().unwrap().atlas(size.i()).width(text) * size.scale()
+        self.add_glyphs(text);
+        self.text.as_ref().unwrap().atlas().width(text) * size.scale()
     }
 
-    fn add_glyphs(&mut self, text: &str, size: TextSize)
+    fn add_glyphs(&mut self, text: &str)
     {
-        if self.text.as_mut().unwrap().add(size.i(), text.chars()) { self.text_version += 1; }
+        if self.text.as_mut().unwrap().add(text.chars()) { self.text_version += 1; }
     }
 }

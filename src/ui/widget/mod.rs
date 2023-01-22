@@ -1,5 +1,5 @@
 use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, dynamic, style, paint::{TextSize, Vec2, Rect}, pods::{WidgetPod, WidgetPodS}};
-use crate::text::Align;
+use crate::text_sdf::Align;
 use std::{marker::PhantomData, borrow::Borrow, hash::Hash};
 
 pub trait WidgetExt<T>: Widget<T> + Sized

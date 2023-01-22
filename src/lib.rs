@@ -1,9 +1,9 @@
 #[cfg(feature = "math")]
 pub mod math;
-#[cfg(feature = "text")]
-pub mod text;
-#[cfg(feature = "text2")]
-pub mod text2;
+#[cfg(feature = "text_rast")]
+pub mod text_rast;
+#[cfg(feature = "text_sdf")]
+pub mod text_sdf;
 #[cfg(feature = "paint")]
 pub mod paint;
 #[cfg(feature = "ui")]

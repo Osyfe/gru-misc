@@ -7,7 +7,7 @@ pub mod dynamic;
 pub mod style;
 mod pods;
 
-use crate::{paint, text::Font};
+use crate::{paint, text_sdf::Font};
 use std::{marker::PhantomData, hash::Hash, rc::Rc, cell::{RefCell, Ref}};
 use ahash::AHashMap;
 
@@ -43,7 +43,7 @@ pub struct Ui<'a, T: 'a, K: Hash + Eq>
     config_current: UiConfig,
     config_fetch: fn(&T) -> UiConfig,
     events: Vec<event::EventPod>,
-    painter: paint::Painter<'a>,
+    painter: paint::Painter,
     widgets: Vec<(Box<dyn Widget<T> + 'a>, fn(&T) -> bool, bool)>,
     responses: Rc<RefCell<AHashMap<K, interact::ResponseState>>>,
     update_requested: bool
@@ -51,7 +51,7 @@ pub struct Ui<'a, T: 'a, K: Hash + Eq>
 
 impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
 {
-    pub fn new(font: Font<'a>, config: fn(&T) -> UiConfig) -> Self
+    pub fn new(font: Font, config: fn(&T) -> UiConfig) -> Self
     {
         Self
         {
@@ -184,12 +184,12 @@ impl<'a> EventCtx<'a>
     }
 }
 
-pub struct LayoutCtx<'a, 'b>
+pub struct LayoutCtx<'a>
 {
-    painter: &'b mut paint::Painter<'a>
+    painter: &'a mut paint::Painter
 }
 
-impl<'a, 'b> LayoutCtx<'a, 'b>
+impl<'a> LayoutCtx<'a>
 {
     #[inline]
     pub fn text_width(&mut self, text: &str, size: paint::TextSize) -> f32
@@ -198,9 +198,9 @@ impl<'a, 'b> LayoutCtx<'a, 'b>
     }
 }
 
-pub struct PaintCtx<'a, 'b>
+pub struct PaintCtx<'a>
 {
-    pub painter: &'b mut paint::Painter<'a>,
+    pub painter: &'a mut paint::Painter,
     pub state: interact::WidgetState,
     pub style: style::StyleSet
 }

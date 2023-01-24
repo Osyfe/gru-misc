@@ -328,8 +328,14 @@ impl AtlasBuilder
 		for (ch, metrics) in chars
 		{
 			let (sdf_width, sdf_height) = (metrics.width as u32, metrics.height as u32);
-			let sdf_padding = 1;//(self.px as u32 / 10).min(sdf_width / 4).min(sdf_height / 4).max(1); //does not work with coords...
-			let (ch_width, ch_height) = (sdf_width - 2 * sdf_padding, sdf_height - 2 * sdf_padding);
+			let sdf_padding = (sdf_width / 4).min(sdf_height / 4).max(1); //padding = size / 4 gives offset = size / 6 (weird stuff) 
+			let (ch_xoff, ch_yoff, ch_width, ch_height) =
+			{
+				let (width, height, padding) = (sdf_width as f32, sdf_height as f32, sdf_padding as f32);
+				let (xoff, yoff) = ((width * padding) / (width + 2.0 * padding), (height * padding) / (height + 2.0 * padding));
+				let (width, height) = (width - 2.0 * xoff, height - 2.0 * yoff);
+				(xoff, yoff, width, height)
+			};
 			let (xmin, ymax) = (metrics.bounds.xmin, -metrics.bounds.ymin);
 			let (xmax, ymin) = (xmin + metrics.bounds.width, ymax - metrics.bounds.height);
 			if *x0 + sdf_width >= self.texture_size
@@ -349,7 +355,7 @@ impl AtlasBuilder
 			}
 			let layer = self.layers.len() - 1;
 			let buffer = &mut self.layers[layer];
-			let sdf = self.font.sdf_generate(self.px, sdf_padding as i32, 1.0, ch).unwrap().1;
+			let sdf = self.font.sdf_generate(self.px, sdf_padding as i32, 2.0, ch).unwrap().1;
 			for y in 0..sdf.height
 			{
 				for x in 0..sdf.width
@@ -359,8 +365,8 @@ impl AtlasBuilder
 			}
     		let glyph = Glyph
 			{
-				coords_min: (((*x0 + sdf_padding) as f32 - 0.5) * self.coords_norm, ((*y0 + sdf_padding) as f32 - 0.5) * self.coords_norm),
-				coords_max: (((*x0 + sdf_padding + ch_width) as f32 + 0.5) * self.coords_norm, ((*y0 + sdf_padding + ch_height) as f32 + 0.5) * self.coords_norm),
+				coords_min: ((*x0 as f32 + ch_xoff - 0.5) * self.coords_norm, (*y0 as f32 + ch_yoff - 0.5) * self.coords_norm),
+				coords_max: ((*x0 as f32 + ch_yoff + ch_width + 0.5) * self.coords_norm, (*y0 as f32 + ch_yoff + ch_height + 0.5) * self.coords_norm),
 				layer: layer as u32,
 				pos_min: (xmin / self.height, ymin / self.height),
 				pos_max: (xmax / self.height, ymax / self.height),

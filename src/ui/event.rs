@@ -6,6 +6,7 @@ use crate::paint::Vec2;
 use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum MouseButton
 {
     Primary,
@@ -242,6 +243,7 @@ impl Display for Key {
 }
 
 #[derive(Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Event
 {
     RawMouseDelta(Vec2),

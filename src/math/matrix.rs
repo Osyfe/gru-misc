@@ -195,7 +195,7 @@ impl Mat3
 	pub fn rotation_z(phi: f32) -> Self { Self::rotation(Vec3(0.0, 0.0, 1.0), phi) }
     
     #[inline]
-    pub fn rotation_euler_xyz(phi: f32, theta: f32, psi: f32) -> Self
+    pub fn rotation_euler_xyz(psi: f32, theta: f32, phi: f32) -> Self
     {
         Self::rotation_z(phi) * Self::rotation_x(theta) * Self::rotation_z(psi)
     }

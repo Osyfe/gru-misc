@@ -131,8 +131,10 @@ pub enum Key
     Tab
 }
 
-impl Display for Key {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for Key
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
         let string = match self {
             Key::Key1 => "1",
             Key::Key2 => "2",

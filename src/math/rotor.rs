@@ -228,9 +228,44 @@ impl Rotor
 		let phi = dot.max(-1.0).min(1.0).acos();
 		let phi_mod = -phi / 2.0;
 		let cos = phi_mod.cos();
-		let sin_red = -(1.0 / (2.0 * (1.0 + dot))).sqrt(); //diverges for v1 ~ -v2
-		if sin_red.is_nan() { Self { s: 0.0, yz: 0.0, zx: 0.0, xy: 1.0 } } //TODO cleaner solution
-		else { Self { s: cos, yz: sin_red * normal.0, zx: sin_red * normal.1, xy: sin_red * normal.2 } }
+		let sin_red = -(1.0 / (2.0 * (1.0 + dot))).sqrt(); //diverges for v1 ~ -v2 => NaN
+		Self { s: cos, yz: sin_red * normal.0, zx: sin_red * normal.1, xy: sin_red * normal.2 }
+	}
+
+	#[inline]
+	pub fn from_coords((x1, y1): (Vec3, Vec3), (x2, y2): (Vec3, Vec3)) -> Self
+	{
+		let (dot_x, dot_y) = (x2.dot(x1), y2.dot(y1));
+		if dot_x <= 0.0 && dot_y <= 0.0
+		{
+			let delta_x = (x2 - x1).unit();
+			let axis = delta_x.cross(y2 - y1).unit();
+			let normal = delta_x.cross(axis);
+			let phi = -2.0 * f32::atan2(x1.dot(delta_x), x1.dot(normal));
+			Self::from_unit_axis(axis, phi)
+		} else if dot_x >= 0.0
+		{
+			let rot1 = Self::from_plane(x1, x2);
+			let y1 = rot1.transform(y1);
+			let z2 = x2.cross(y2);
+			let phi = -f32::atan2(y1.dot(z2), y1.dot(y2));
+			let rot2 = Self::from_unit_axis(x2, phi);
+			rot2 * rot1
+		} else //dot_y > 0
+		{
+			let rot1 = Self::from_plane(y1, y2);
+			let x1 = rot1.transform(x1);
+			let z2 = x2.cross(y2);
+			let phi = -f32::atan2(-x1.dot(z2), x1.dot(x2));
+			let rot2 = Self::from_unit_axis(y2, phi);
+			rot2 * rot1
+		}
+	}
+
+	#[inline]
+	pub fn from_euler(psi: f32, theta: f32, phi: f32) -> Self
+	{
+		Self::from_unit_axis(Vec3::e_z(), phi) * Self::from_unit_axis(Vec3::e_y(), theta) * Self::from_unit_axis(Vec3::e_z(), psi)
 	}
 
 	#[inline]
@@ -273,8 +308,7 @@ impl Rotor
 	pub fn to_axis(self) -> Vec3
 	{
 		let phi_mod = self.s.max(-1.0).min(1.0).acos();
-		let norm = -2.0 * phi_mod;
-		let sin_red_inv = if phi_mod > DIV_CUT { norm / phi_mod.sin() } else { -2.0 - phi_mod * phi_mod / 3.0 };
+		let sin_red_inv = if phi_mod > DIV_CUT { -2.0 * phi_mod / phi_mod.sin() } else { -2.0 - phi_mod * phi_mod / 3.0 };
 		Vec3(self.yz, self.zx, self.xy) * sin_red_inv
 	}
 
@@ -308,8 +342,8 @@ impl Rotor
 	#[inline]
 	pub fn fix(self) -> Self
 	{
-		let norm = (self.s * self.s + self.yz * self.yz + self.zx * self.zx + self.xy * self.xy).sqrt();
-		Self { s: self.s / norm, yz: self.yz / norm, zx: self.zx / norm, xy: self.xy / norm }
+		let norm = 1.0 / (self.s * self.s + self.yz * self.yz + self.zx * self.zx + self.xy * self.xy).sqrt();
+		Self { s: self.s * norm, yz: self.yz * norm, zx: self.zx * norm, xy: self.xy * norm }
 	}
 }
 

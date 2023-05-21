@@ -131,8 +131,8 @@ impl Vec2
 	#[inline]
 	pub fn unit(self) -> Self
 	{
-		let norm = self.norm();
-		Self(self.0 / norm, self.1 / norm)
+		let norm = 1.0 / self.norm();
+		Self(self.0 * norm, self.1 * norm)
 	}
 
 	#[inline]
@@ -251,8 +251,8 @@ impl Vec3
 	#[inline]
 	pub fn unit(self) -> Self
 	{
-		let norm = self.norm();
-		Self(self.0 / norm, self.1 / norm, self.2 / norm)
+		let norm = 1.0 / self.norm();
+		Self(self.0 * norm, self.1 * norm, self.2 * norm)
 	}
 
 	#[inline]
@@ -365,8 +365,8 @@ impl Vec4
 	#[inline]
 	pub fn unit(self) -> Self
 	{
-		let norm = self.norm();
-		Self(self.0 / norm, self.1 / norm, self.2 / norm, self.3 / norm)
+		let norm = 1.0 / self.norm();
+		Self(self.0 * norm, self.1 * norm, self.2 * norm, self.3 * norm)
 	}
 
 	#[inline]

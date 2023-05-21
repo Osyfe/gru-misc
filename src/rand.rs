@@ -14,3 +14,9 @@ pub fn rng_instant() -> Algo
     use std::time::{SystemTime, UNIX_EPOCH};
     rng_seed(SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs())
 }
+
+pub fn rng_entropy() -> Algo
+{
+	use rand_raw::{rngs::OsRng, RngCore};
+    rng_seed(OsRng.next_u64())
+}

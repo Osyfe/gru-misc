@@ -40,6 +40,7 @@ pub struct Pool
     task: VecDeque<(Key, Task)>,
     res: Vec<(u32, ResSlot)>,
     free: Vec<usize>,
+    idle: u32,
     available: u32
 }
 
@@ -51,14 +52,16 @@ impl Pool
     {
         let (s2, r2) = flume::bounded(num_threads);
         let worker = (0..num_threads).map(|i| Worker::new(i, s2.clone())).collect();
-        Self { worker, send: s2, recv: r2, task: VecDeque::new(), res: Vec::new(), free: Vec::new(), available: 0 }
+        Self { worker, send: s2, recv: r2, task: VecDeque::new(), res: Vec::new(), free: Vec::new(), idle: num_threads as u32, available: 0 }
     }
 
     pub fn poll(&mut self)
     {
         for (i, key, res) in self.recv.try_iter()
         {
+            debug_assert!(!self.worker[i].free);
             self.worker[i].free = true;
+            self.idle += 1;
             let entry = &mut self.res[key.0];
             if cfg!(debug_assertions)
             {
@@ -75,6 +78,7 @@ impl Pool
                 if let Some((key, task)) = self.task.pop_front()
                 {
                     worker.free = false;
+                    self.idle -= 1;
                     if let Err(flume::SendError(task)) = worker.submit.send((i, key, task))
                     { //replace broken worker and submit again
                         *worker = Worker::new(i, self.send.clone());
@@ -101,7 +105,12 @@ impl Pool
         TaskKey { key, _phantom: PhantomData }
     }
 
-    pub fn available(&self) -> u32
+    pub fn idle_worker(&self) -> u32
+    {
+        self.idle
+    }
+
+    pub fn available_results(&self) -> u32
     {
         self.available
     }

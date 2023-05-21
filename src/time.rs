@@ -17,6 +17,11 @@ impl FPS
         Self { loop_helper, current_fps: 0 }
     }
 
+    pub fn renew(&mut self, max_fps: Option<usize>)
+    {
+        *self = Self::new(max_fps);
+    }
+
     pub fn dt(&mut self) -> f32
     {
         if let Some(fps) = self.loop_helper.report_rate()

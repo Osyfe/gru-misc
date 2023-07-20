@@ -5,7 +5,7 @@ use crate::paint::Vec2;
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum MouseButton
 {
@@ -14,7 +14,7 @@ pub enum MouseButton
     Terciary
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Key
 {

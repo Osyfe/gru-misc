@@ -128,7 +128,7 @@ impl Painter
         let i = size.i();
         let size = TextSize::SIZES[i];
         let width = (rect.max.0 - rect.min.0) / size;
-        let offset = self.origin + rect.min + Vec2(0.0, (rect.max.1 - rect.min.1 - size) / 2.0);
+        let offset = self.origin + rect.min;
         let i0 = self.vertices.len() as u16;
         atlas_builder.atlas().text
         (

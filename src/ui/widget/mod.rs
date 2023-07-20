@@ -340,7 +340,7 @@ impl<T: Borrow<str>> Widget<T> for Text<T>
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        ctx.painter.draw_text(Rect::new_origin(size), data.borrow(), self.text_size, self.align, true, ctx.style.text.get(interact::WidgetState::Cold));
+        ctx.painter.draw_text(Rect::new_origin(self.size), data.borrow(), self.text_size, self.align, true, ctx.style.text.get(interact::WidgetState::Cold));
         self.size
     }
 }

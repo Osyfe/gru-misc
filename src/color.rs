@@ -1,6 +1,10 @@
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 use std::f32::consts::PI;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Color(f32, f32, f32, f32); //normalized linear rgb + alpha
 
 impl Color

@@ -54,6 +54,11 @@ impl Pool
         let worker = (0..num_threads).map(|i| Worker::new(i, s2.clone())).collect();
         Self { worker, send: s2, recv: r2, task: VecDeque::new(), res: Vec::new(), free: Vec::new(), idle: num_threads as u32, available: 0 }
     }
+	
+	pub fn num_threads(&self) -> usize
+	{
+		self.worker.len()
+	}
 
     pub fn poll(&mut self)
     {

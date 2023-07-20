@@ -162,6 +162,12 @@ impl Painter
         self.text.as_ref().unwrap().atlas().width(text) * size.scale()
     }
 
+    pub fn text_height(&mut self, text: &str, layout: Layout) -> u32
+    {
+        self.add_glyphs(text);
+        self.text.as_ref().unwrap().atlas().height(text, layout)
+    }
+
     fn add_glyphs(&mut self, text: &str)
     {
         if self.text.as_mut().unwrap().add(text.chars()) { self.text_version += 1; }

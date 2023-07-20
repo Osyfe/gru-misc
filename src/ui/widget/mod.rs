@@ -309,6 +309,50 @@ impl<T: Borrow<str>> Label<T>
     }
 }
 
+pub struct Text<T: Borrow<str>>
+{
+    text_size: TextSize,
+    size: Vec2,
+    align: Align,
+    _phantom: PhantomData<T>
+}
+
+impl<T: Borrow<str>> Widget<T> for Text<T>
+{
+    #[inline]
+    fn event(&mut self, _: &mut EventCtx, _: &mut T, _: &mut EventPod) { }
+
+    #[inline]
+    fn update(&mut self, _: &mut T) -> bool
+    {
+        false
+    }
+
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
+    {
+        let width = constraints.max.0 / self.text_size.scale();
+        let height = ctx.text_height(data.borrow(), crate::text_sdf::Layout { width, align: self.align, auto_wrap: true }) as f32 * self.text_size.scale();
+        self.size = Vec2(width, height);
+        self.size
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
+    {
+        ctx.painter.draw_text(Rect::new_origin(size), data.borrow(), self.text_size, self.align, true, ctx.style.text.get(interact::WidgetState::Cold));
+        self.size
+    }
+}
+
+impl<T: Borrow<str>> Text<T>
+{
+    pub fn new(size: TextSize, align: Align) -> Self
+    {
+        Self { text_size: size, size: Vec2(0.0, 0.0), align, _phantom: PhantomData }
+    }
+}
+
 pub struct Check
 {
     size: TextSize

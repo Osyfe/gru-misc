@@ -241,6 +241,38 @@ impl Atlas
 		}).sum()
 	}
 
+	pub fn height(&self, text: &str, layout: Layout) -> u32
+	{
+		let mut lines = 0;
+		for block in text.split('\n')
+		{
+			let mut words = 0;
+			let mut base_x = 0.0;
+			for word in block.split(' ')
+			{
+				let word_length: f32 = word.chars().map(|ch| match self.glyphs.get(&ch)
+				{
+					Some(glyph) => glyph,
+					None => match &self.default_glyph
+					{
+						Some(glyph) => glyph,
+						None => panic!("Atlas::text: Atlas does not contain \'{}\'.", ch)
+					}
+				}).map(|glyph| glyph.h_advance).sum();
+				if layout.auto_wrap && words > 0 && base_x + self.space + word_length > layout.width
+				{
+					lines += 1;
+					words = 0;
+					base_x = 0.0;
+				}
+				base_x += if words == 0 { word_length } else { self.space + word_length };
+				words += 1;
+			}
+			if words > 0 { lines += 1; }
+		}
+		lines
+	}
+
 	pub fn default(&mut self, glyph: Option<char>)
 	{
 		self.default_glyph = glyph.as_ref().map(|ch| self.glyphs.get(ch).expect(&format!("Atlas::text: Atlas does not contain \'{}\'.", ch)).clone());

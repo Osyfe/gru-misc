@@ -7,7 +7,7 @@ pub mod dynamic;
 pub mod style;
 mod pods;
 
-use crate::{paint, text_sdf::Font};
+use crate::{paint, text_sdf};
 use std::{marker::PhantomData, hash::Hash, rc::Rc, cell::{RefCell, Ref}};
 use ahash::AHashMap;
 
@@ -51,7 +51,7 @@ pub struct Ui<'a, T: 'a, K: Hash + Eq>
 
 impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
 {
-    pub fn new(font: Font, config: fn(&T) -> UiConfig) -> Self
+    pub fn new(font: text_sdf::Font, config: fn(&T) -> UiConfig) -> Self
     {
         Self
         {
@@ -195,6 +195,12 @@ impl<'a> LayoutCtx<'a>
     pub fn text_width(&mut self, text: &str, size: paint::TextSize) -> f32
     {
         self.painter.text_width(text, size)
+    }
+
+    #[inline]
+    pub fn text_height(&mut self, text: &str, layout: text_sdf::Layout) -> u32
+    {
+        self.painter.text_height(text, layout)
     }
 }
 

@@ -5,7 +5,7 @@ use crate::paint::Vec2;
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum MouseButton
 {
@@ -14,7 +14,7 @@ pub enum MouseButton
     Terciary
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Key
 {
@@ -204,12 +204,12 @@ impl Display for Key
             Key::Home => "Home",
             Key::Delete => "DEL",
             Key::End => "End",
-            Key::PageUp => "Page↑",
-            Key::PageDown => "Page↓",
-            Key::Left => "◄",
-            Key::Up => "▲",
-            Key::Right => "►",
-            Key::Down => "▼",
+            Key::PageUp => "PageUp",//"Page↑",
+            Key::PageDown => "PageDown",//"Page↓",
+            Key::Left => "Left",//"◄",
+            Key::Up => "Up",//"▲",
+            Key::Right => "Right",//"►",
+            Key::Down => "Down",//"▼",
             Key::Back => "Back",
             Key::Return => "Return",
             Key::Space => "Space",

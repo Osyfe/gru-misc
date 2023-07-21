@@ -64,13 +64,13 @@ impl Default for StyleSet
     }
 }
 
-pub struct Style<T, W: Widget<T>, F: Fn(&mut StyleSet)>
+pub struct Style<T, W: Widget<T>, F: Fn(&T, &mut StyleSet)>
 {
     inner: WidgetPod<T, W>,
     styler: F
 }
 
-impl<T, W: Widget<T>, F: Fn(&mut StyleSet)> Widget<T> for Style<T, W, F>
+impl<T, W: Widget<T>, F: Fn(&T, &mut StyleSet)> Widget<T> for Style<T, W, F>
 {
     #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
@@ -94,7 +94,7 @@ impl<T, W: Widget<T>, F: Fn(&mut StyleSet)> Widget<T> for Style<T, W, F>
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
         let old_style = ctx.style.clone();
-        (self.styler)(&mut ctx.style);
+        (self.styler)(data, &mut ctx.style);
         let ret = self.inner.widget.paint(ctx, data, size);
         ctx.style = old_style;
         ret
@@ -107,7 +107,7 @@ impl<T, W: Widget<T>, F: Fn(&mut StyleSet)> Widget<T> for Style<T, W, F>
     }
 }
 
-impl<T, W: Widget<T>, F: Fn(&mut StyleSet)> Style<T, W, F>
+impl<T, W: Widget<T>, F: Fn(&T, &mut StyleSet)> Style<T, W, F>
 {
     pub fn new(widget: W, styler: F) -> Self
     {

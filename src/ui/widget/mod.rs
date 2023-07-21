@@ -17,7 +17,7 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn watch(self) -> dynamic::Watch<T, Self> where T: Clone + PartialEq { dynamic::Watch::new(self) }
     fn transform<'a, U>(self, init: T, transformer: impl FnMut(&U) -> T + 'a) -> dynamic::Transform<'a, U, T, Self> { dynamic::Transform::new(self, init, transformer) }
     fn response<'a, K: Hash + Eq>(self, register: &Register<K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, register) }
-    fn style<F: Fn(&mut style::StyleSet)>(self, styler: F) -> style::Style<T, Self, F> { style::Style::new(self, styler) }
+    fn style<F: Fn(&T, &mut style::StyleSet)>(self, styler: F) -> style::Style<T, Self, F> { style::Style::new(self, styler) }
 }
 
 impl<T, W: Widget<T> + Sized> WidgetExt<T> for W {}

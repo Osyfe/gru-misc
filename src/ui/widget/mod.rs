@@ -532,7 +532,7 @@ impl Widget<String> for Edit
     {
         let rect = Rect::new_origin(size);
         ctx.painter.draw_rect(rect, ctx.style.data.get(ctx.state));
-        let display_data = data.clone() + if self.active && self.max_length.map_or(true, |ml| data.len() < ml) {"_"} else {""};
+        let display_data = data.clone() + if self.active && self.max_length.map_or(true, |ml| data.len() < ml) { "_" } else { "" };
         ctx.painter.draw_text(Rect::new_origin(size), &display_data, self.size, Align::Left, false, ctx.style.text.get(ctx.state));
         size
     }

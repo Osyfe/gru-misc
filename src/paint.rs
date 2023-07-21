@@ -6,35 +6,6 @@ use crate::text_sdf::{Font, AtlasBuilder, Align, Layout};
 pub const TEXTURE_SIZE: u32 = 1024;
 const TEXTURE_PADDING: u32 = 5;
 
-#[derive(Clone, Copy)]
-pub enum TextSize
-{
-    Small,
-    Normal,
-    Large
-}
-
-impl TextSize
-{
-    const NUM: usize = 3;
-    const SIZES: [f32; Self::NUM] = [0.5, 1.0, 2.0];
-
-    fn i(&self) -> usize
-    {
-        match self
-        {
-            Self::Small => 0,
-            Self::Normal => 1,
-            Self::Large => 2
-        }
-    }
-
-    pub fn scale(&self) -> f32
-    {
-        Self::SIZES[self.i()]
-    }
-}
-
 pub struct Vertex
 {
     pub position: Vec2,
@@ -121,12 +92,10 @@ impl Painter
         for i in [0, 1, 2, 2, 3, 0] { self.indices.push(i0 + i); }
     }
 
-    pub fn draw_text(&mut self, rect: Rect, text: &str, size: TextSize, align: Align, auto_wrap: bool, color: Color)
+    pub fn draw_text(&mut self, rect: Rect, text: &str, size: f32, align: Align, auto_wrap: bool, color: Color)
     {
         self.add_glyphs(text);
         let atlas_builder = self.text.as_mut().unwrap();
-        let i = size.i();
-        let size = TextSize::SIZES[i];
         let width = (rect.max.0 - rect.min.0) / size;
         let offset = self.origin + rect.min;
         let i0 = self.vertices.len() as u16;
@@ -156,10 +125,10 @@ impl Painter
         Frame { new, vertices: &self.vertices, indices: &self.indices, font_version: self.text_version, font_data: self.text.as_ref().unwrap().sdf() }
     }
 
-    pub fn text_width(&mut self, text: &str, size: TextSize) -> f32
+    pub fn text_width(&mut self, text: &str, size: f32) -> f32
     {
         self.add_glyphs(text);
-        self.text.as_ref().unwrap().atlas().width(text) * size.scale()
+        self.text.as_ref().unwrap().atlas().width(text) * size
     }
 
     pub fn text_height(&mut self, text: &str, layout: Layout) -> u32

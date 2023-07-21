@@ -1,4 +1,4 @@
-use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, dynamic, style, paint::{TextSize, Vec2, Rect}, pods::{WidgetPod, WidgetPodS}};
+use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, Lens, event::{Key, Event, EventPod, MouseButton}, layout::{self, LayoutAlign}, lens, interact, dynamic, style, paint::{Vec2, Rect}, pods::{WidgetPod, WidgetPodS}};
 use crate::text_sdf::Align;
 use std::{marker::PhantomData, borrow::Borrow, hash::Hash};
 
@@ -266,7 +266,7 @@ impl<T, W: Widget<T>> Bg<T, W, false>
 
 pub struct Label<T: Borrow<str>>
 {
-    text_size: TextSize,
+    text_size: f32,
     size: Vec2,
     align: Align,
     _phantom: PhantomData<T>
@@ -287,7 +287,7 @@ impl<T: Borrow<str>> Widget<T> for Label<T>
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, _: Rect) -> Vec2
     {
         let width = ctx.text_width(data.borrow(), self.text_size);
-        let height = self.text_size.scale();
+        let height = self.text_size;
         self.size = Vec2(width, height);
         self.size
     }
@@ -302,7 +302,7 @@ impl<T: Borrow<str>> Widget<T> for Label<T>
 
 impl<T: Borrow<str>> Label<T>
 {
-    pub fn new(size: TextSize, align: Align) -> Self
+    pub fn new(size: f32, align: Align) -> Self
     {
         if align == Align::Block { panic!("Label::new: Labels cannot have a block align."); }
         Self { text_size: size, size: Vec2(0.0, 0.0), align, _phantom: PhantomData }
@@ -311,7 +311,7 @@ impl<T: Borrow<str>> Label<T>
 
 pub struct Text<T: Borrow<str>>
 {
-    text_size: TextSize,
+    text_size: f32,
     size: Vec2,
     align: Align,
     _phantom: PhantomData<T>
@@ -331,14 +331,14 @@ impl<T: Borrow<str>> Widget<T> for Text<T>
     #[inline]
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
     {
-        let width = constraints.max.0 / self.text_size.scale();
-        let height = ctx.text_height(data.borrow(), crate::text_sdf::Layout { width, align: self.align, auto_wrap: true }) as f32 * self.text_size.scale();
+        let width = constraints.max.0 / self.text_size;
+        let height = ctx.text_height(data.borrow(), crate::text_sdf::Layout { width, align: self.align, auto_wrap: true }) as f32 * self.text_size;
         self.size = Vec2(width, height);
         self.size
     }
 
     #[inline]
-    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, _: Vec2) -> Vec2
     {
         ctx.painter.draw_text(Rect::new_origin(self.size), data.borrow(), self.text_size, self.align, true, ctx.style.text.get(interact::WidgetState::Cold));
         self.size
@@ -347,7 +347,7 @@ impl<T: Borrow<str>> Widget<T> for Text<T>
 
 impl<T: Borrow<str>> Text<T>
 {
-    pub fn new(size: TextSize, align: Align) -> Self
+    pub fn new(size: f32, align: Align) -> Self
     {
         Self { text_size: size, size: Vec2(0.0, 0.0), align, _phantom: PhantomData }
     }
@@ -355,7 +355,7 @@ impl<T: Borrow<str>> Text<T>
 
 pub struct Check
 {
-    size: TextSize
+    size: f32
 }
 
 impl Widget<bool> for Check
@@ -372,14 +372,14 @@ impl Widget<bool> for Check
     #[inline]
     fn layout(&mut self, _: &mut LayoutCtx, _: &bool, _: Rect) -> Vec2
     {
-        let size = self.size.scale();
+        let size = self.size;
         Vec2(size, size)
     }
 
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, flag: &bool, _: Vec2)-> Vec2
     {
-        let size1 = self.size.scale();
+        let size1 = self.size;
         let (size2, size3) = (size1 * 0.15, size1 * 0.7);
         let (size4, size5) = (size1 * 0.3, size1 * 0.4);
         ctx.painter.draw_rect(Rect::new_origin(Vec2(size1, size1)), ctx.style.top);
@@ -397,7 +397,7 @@ impl Widget<bool> for Check
 
 impl Check
 {
-    pub fn new(size: TextSize) -> Self
+    pub fn new(size: f32) -> Self
     {
         Self { size }
     }
@@ -486,7 +486,7 @@ impl Slider
 
 pub struct Edit
 {
-    size: TextSize,
+    size: f32,
     active: bool,
     filter: Box<dyn FnMut(char) -> bool>,
     max_length: Option<usize>
@@ -523,7 +523,7 @@ impl Widget<String> for Edit
     #[inline]
     fn layout(&mut self, _: &mut LayoutCtx, _: &String, size: Rect) -> Vec2
     {
-        let height = self.size.scale();
+        let height = self.size;
         Vec2(size.max.0, height)
     }
 
@@ -552,7 +552,7 @@ impl Widget<String> for Edit
 
 impl Edit
 {
-    pub fn new(size: TextSize, filter: Option<Box<dyn FnMut(char) -> bool>>, max_length: Option<usize>) -> Self
+    pub fn new(size: f32, filter: Option<Box<dyn FnMut(char) -> bool>>, max_length: Option<usize>) -> Self
     {
         let filter = filter.unwrap_or(Box::new(|_| true));
         Self { size, active: false, filter, max_length }

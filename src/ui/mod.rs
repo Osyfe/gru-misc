@@ -192,7 +192,7 @@ pub struct LayoutCtx<'a>
 impl<'a> LayoutCtx<'a>
 {
     #[inline]
-    pub fn text_width(&mut self, text: &str, size: paint::TextSize) -> f32
+    pub fn text_width(&mut self, text: &str, size: f32) -> f32
     {
         self.painter.text_width(text, size)
     }

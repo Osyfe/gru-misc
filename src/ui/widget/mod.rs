@@ -145,49 +145,49 @@ impl<T, W1: Widget<T>, W2: Widget<()>> Maybe<T, W1, W2>
     }
 }
 
-pub struct MaybeWith<T, W1: Widget<T>, W2: Widget<T>, F: Fn(&T) -> bool>
+pub struct Either<T, W1: Widget<T>, W2: Widget<T>, F: Fn(&T) -> bool>
 {
-    some: WidgetPod<T, W1>,
-    none: WidgetPod<T, W2>,
-    f: F
+    opt1: WidgetPod<T, W1>,
+    opt2: WidgetPod<T, W2>,
+    cond: F
 }
 
-impl<T, W1: Widget<T>, W2: Widget<T>, F: Fn(&T) -> bool> Widget<T> for MaybeWith<T, W1, W2, F>
+impl<T, W1: Widget<T>, W2: Widget<T>, F: Fn(&T) -> bool> Widget<T> for Either<T, W1, W2, F>
 {
     #[inline]
     fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
     {
-        if (self.f)(data) { self.some.widget.event(ctx, data, event); }
-        else { self.none.widget.event(ctx, data, event); }
+        if (self.cond)(data) { self.opt1.widget.event(ctx, data, event); }
+        else { self.opt2.widget.event(ctx, data, event); }
     }
 
     #[inline]
     fn update(&mut self, data: &mut T) -> bool
     {
-        if (self.f)(data) { self.some.widget.update(data) }
-        else { self.none.widget.update(data) }
+        if (self.cond)(data) { self.opt1.widget.update(data) }
+        else { self.opt2.widget.update(data) }
     }
 
     #[inline]
     fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, constraints: Rect) -> Vec2
     {
-        if (self.f)(data) { self.some.widget.layout(ctx, data, constraints) }
-        else { self.none.widget.layout(ctx, data, constraints) }
+        if (self.cond)(data) { self.opt1.widget.layout(ctx, data, constraints) }
+        else { self.opt2.widget.layout(ctx, data, constraints) }
     }
 
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        if (self.f)(data) { self.some.widget.paint(ctx, data, size) }
-        else { self.none.widget.paint(ctx, data, size) }
+        if (self.cond)(data) { self.opt1.widget.paint(ctx, data, size) }
+        else { self.opt2.widget.paint(ctx, data, size) }
     }
 }
 
-impl<T, W1: Widget<T>, W2: Widget<T>, F: Fn(&T) -> bool> MaybeWith<T, W1, W2, F>
+impl<T, W1: Widget<T>, W2: Widget<T>, F: Fn(&T) -> bool> Either<T, W1, W2, F>
 {
-    pub fn new(some: W1, none: W2, f: F) -> Self
+    pub fn new(opt1: W1, opt2: W2, cond: F) -> Self
     {
-        Self { some: WidgetPod::new(some), none: WidgetPod::new(none), f }
+        Self { opt1: WidgetPod::new(opt1), opt2: WidgetPod::new(opt2), cond }
     }
 }
 

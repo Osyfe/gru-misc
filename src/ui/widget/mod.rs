@@ -495,7 +495,16 @@ impl Widget<f32> for Slider
                     *data = new;
                     ctx.request_update();
                 }
-            }
+            },
+            Event::Scroll { pos, dy, .. } =>
+            {
+                if pos.1 >= 0.0 && pos.1 <= self.size.1 //height bound
+                && pos.0 >= -0.5 && pos.0 <= self.size.0 + 0.5 //relaxed width bound
+                {
+                    *data = (*data + dy * self.step).max(self.min).min(self.max);
+                }
+                
+            },
             _ => {}
         }
     }
@@ -530,12 +539,103 @@ impl Slider
     }
 }
 
+pub struct VSlider
+{
+    min: f32,
+    max: f32,
+    step: f32,
+    size: Vec2,
+    dragged: bool
+}
+
+impl Widget<f32> for VSlider
+{
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut f32, event: &mut EventPod)
+    {
+        match event.event
+        {
+            Event::PointerClicked { pos, button: MouseButton::Primary, pressed } => if pressed
+            {
+                if pos.0 >= 0.0 && pos.0 <= self.size.0 //width bound
+                {
+                    if pos.1 >= -0.5 && pos.1 <= self.size.1 + 0.5 { self.dragged = true; } //relaxed height bound
+                    let f = pos.1 / self.size.1;
+                    if f >= 0.0 && f <= 1.0 //strict height bound
+                    {
+                        *data = (f * (self.max - self.min) / self.step).round() * self.step + self.min;
+                        ctx.request_update();
+                    }
+                }
+            } else if self.dragged
+            {
+                self.dragged = false;
+                ctx.request_update();
+            },
+            Event::PointerGone => if self.dragged
+            {
+                self.dragged = false;
+                ctx.request_update();
+            }
+            Event::PointerMoved { pos, .. } => if self.dragged
+            {
+                let f = (pos.1 / self.size.1).max(0.0).min(1.0);
+                let new = (f * (self.max - self.min) / self.step).round() * self.step + self.min;
+                if new != *data
+                {
+                    *data = new;
+                    ctx.request_update();
+                }
+            },
+            Event::Scroll { pos, dy, .. } =>
+            {
+                if pos.0 >= 0.0 && pos.0 <= self.size.0 //width bound
+                && pos.1 >= -0.5 && pos.1 <= self.size.1 + 0.5 //relaxed height bound
+                {
+                    *data = (*data - dy * self.step).max(self.min).min(self.max);
+                }
+                
+            },
+            _ => {}
+        }
+    }
+
+    fn update(&mut self, _: &mut f32) -> bool
+    {
+        false
+    }
+        
+    fn layout(&mut self, _: &mut LayoutCtx, _: &f32, constraints: Rect) -> Vec2
+    {
+        Vec2(1.0, constraints.max.1)
+    }
+
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &f32, size: Vec2) -> Vec2
+    {
+        self.size = size;
+        let pos = (data - self.min) / (self.max - self.min) * size.1;
+        let (x0, x1, x2, x3) = (0.0, size.0 / 3.0, size.0 / 1.5, size.0);
+        let (y0, y1, y2, y3) = (0.0, pos - 0.5, pos + 0.5, size.1);
+        ctx.painter.draw_rect(Rect { min: Vec2(x1, y0), max: Vec2(x2, y3) }, ctx.style.top);
+        ctx.painter.draw_rhombus(Rect { min: Vec2(x0, y1), max: Vec2(x3, y2) }, if self.dragged { ctx.style.data.hot } else { ctx.style.data.cold });
+        size
+    }
+}
+
+impl VSlider
+{
+    pub fn new(min: f32, max: f32, step: f32) -> Self
+    {
+        Self { min, max, step, size: Vec2::zero(), dragged: false }
+    }
+}
+
 pub struct Edit
 {
     size: f32,
     active: bool,
     filter: Box<dyn FnMut(char) -> bool>,
-    max_length: Option<usize>
+    max_length: Option<usize>,
+	use_all_keys: bool
 }
 
 impl Widget<String> for Edit
@@ -551,12 +651,17 @@ impl Widget<String> for Edit
                 if (self.filter)(ch) && self.max_length.map(|max| data.chars().count() < max).unwrap_or(true) { data.push(ch); }
                 ctx.request_update();
             }
-            if let Event::Key { key: Key::Back, pressed: true } = event.event
+            if let Event::Key { key, pressed: true } = event.event
             {
-                event.used;
-                data.pop();
-                ctx.request_update();
+                if self.use_all_keys { event.used = true; }
+                if key == Key::Back
+				{
+					event.used = true;
+					data.pop();
+					ctx.request_update();
+				}
             }
+			
         }
     }
 
@@ -599,9 +704,9 @@ impl Widget<String> for Edit
 
 impl Edit
 {
-    pub fn new(size: f32, filter: Option<Box<dyn FnMut(char) -> bool>>, max_length: Option<usize>) -> Self
+    pub fn new(size: f32, filter: Option<Box<dyn FnMut(char) -> bool>>, max_length: Option<usize>, use_all_keys: bool) -> Self
     {
         let filter = filter.unwrap_or(Box::new(|_| true));
-        Self { size, active: false, filter, max_length }
+        Self { size, active: false, filter, max_length, use_all_keys }
     }
 }

@@ -253,7 +253,7 @@ pub enum Event
     PointerClicked { pos: Vec2, button: MouseButton, pressed: bool },
     PointerGone,
     CloseWindow,
-    Scroll { dx: f32, dy: f32 },
+    Scroll { pos: Vec2, dx: f32, dy: f32 },
     Key { key: Key, pressed: bool },
     Char(char)
 }
@@ -270,6 +270,7 @@ impl Event
                 *delta *= scale;
             },
             Self::PointerClicked { pos, .. } => *pos *= scale,
+            Self::Scroll { pos, .. } => *pos *= scale,
             _ => {}
         }
         self
@@ -281,6 +282,7 @@ impl Event
         {
             Self::PointerMoved { pos, .. } => *pos += offset,
             Self::PointerClicked { pos, .. } => *pos += offset,
+            Self::Scroll { pos, .. } => *pos += offset,
             _ => {}
         }
         self

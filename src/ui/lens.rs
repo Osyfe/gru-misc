@@ -117,3 +117,30 @@ impl<T, U: AsRef<[T]> + AsMut<[T]>> Lens<U, T> for LensSlice
         f(&mut data.as_mut()[self.0])
     }
 }
+
+macro_rules! lens_tuple
+{
+    ($name: ident, $i:tt, $it:ty ; $($j:tt),+) =>
+    {
+        #[derive(Clone, Copy)]
+        pub struct $name;
+
+        impl<$($j),+> Lens<($($j),+), $it> for $name
+        {
+            #[inline]
+            fn with<A, F: FnOnce(&$it) -> A>(&self, data: &($($j),+), f: F) -> A
+            {
+                f(&data.$i)
+            }
+
+            #[inline]
+            fn with_mut<A, F: FnOnce(&mut $it) -> A>(&self, data: &mut ($($j),+), f: F) -> A
+            {
+                f(&mut data.$i)
+            }
+        }
+    };
+}
+
+lens_tuple!(LensTuple0, 0, U0 ; U0, U1);
+lens_tuple!(LensTuple1, 1, U1 ; U0, U1);

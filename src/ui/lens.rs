@@ -122,9 +122,6 @@ macro_rules! lens_tuple
 {
     ($name: ident, $i:tt, $it:ty ; $($j:tt),+) =>
     {
-        #[derive(Clone, Copy)]
-        pub struct $name;
-
         impl<$($j),+> Lens<($($j),+), $it> for $name
         {
             #[inline]
@@ -142,5 +139,16 @@ macro_rules! lens_tuple
     };
 }
 
+#[derive(Clone, Copy)]
+pub struct LensTuple0;
+#[derive(Clone, Copy)]
+pub struct LensTuple1;
+#[derive(Clone, Copy)]
+pub struct LensTuple2;
+
 lens_tuple!(LensTuple0, 0, U0 ; U0, U1);
 lens_tuple!(LensTuple1, 1, U1 ; U0, U1);
+
+lens_tuple!(LensTuple0, 0, U0 ; U0, U1, U2);
+lens_tuple!(LensTuple1, 1, U1 ; U0, U1, U2);
+lens_tuple!(LensTuple2, 2, U2 ; U0, U1, U2);

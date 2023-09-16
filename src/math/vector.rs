@@ -59,7 +59,7 @@ macro_rules! impl_ops
 	}
 }
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Vec2(pub f32, pub f32);
@@ -93,6 +93,24 @@ impl<T: From<f32>> From<Vec2> for (T, T)
 	fn from(v: Vec2) -> (T, T)
 	{
 		(v.0.into(), v.1.into())
+	}
+}
+
+impl<T: Into<f32>> From<[T; 2]> for Vec2
+{
+	#[inline]
+	fn from(a: [T; 2]) -> Vec2
+	{
+		Vec2(a[0].into(), a[1].into())
+	}
+}
+
+impl<T: From<f32>> From<Vec2> for [T; 2]
+{
+	#[inline]
+	fn from(v: Vec2) -> [T; 2]
+	{
+		[v.0.into(), v.1.into()]
 	}
 }
 
@@ -203,6 +221,24 @@ impl<T: From<f32>> From<Vec3> for (T, T, T)
 	}
 }
 
+impl<T: Into<f32>> From<[T; 3]> for Vec3
+{
+	#[inline]
+	fn from(a: [T; 3]) -> Vec2
+	{
+		Vec2(a[0].into(), a[1].into(), a[2].into())
+	}
+}
+
+impl<T: From<f32>> From<Vec3> for [T; 3]
+{
+	#[inline]
+	fn from(v: Vec3) -> [T; 3]
+	{
+		[v.0.into(), v.1.into(), v.2.into()]
+	}
+}
+
 impl Vec3
 {
 	#[inline]
@@ -305,7 +341,7 @@ impl Vec3
 }
 
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[repr(C)]
 pub struct Vec4(pub f32, pub f32, pub f32, pub f32);
@@ -339,6 +375,24 @@ impl<T: From<f32>> From<Vec4> for (T, T, T, T)
 	fn from(v: Vec4) -> (T, T, T, T)
 	{
 		(v.0.into(), v.1.into(), v.2.into(), v.3.into())
+	}
+}
+
+impl<T: Into<f32>> From<[T; 4]> for Vec4
+{
+	#[inline]
+	fn from(a: [T; 4]) -> Vec2
+	{
+		Vec2(a[0].into(), a[1].into(), a[2].into(), a[3].into())
+	}
+}
+
+impl<T: From<f32>> From<Vec4> for [T; 4]
+{
+	#[inline]
+	fn from(v: Vec4) -> [T; 4]
+	{
+		[v.0.into(), v.1.into(), v.2.into(), v.3.into()]
 	}
 }
 

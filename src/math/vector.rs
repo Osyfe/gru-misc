@@ -99,9 +99,9 @@ impl<T: From<f32>> From<Vec2> for (T, T)
 impl<T: Into<f32>> From<[T; 2]> for Vec2
 {
 	#[inline]
-	fn from(a: [T; 2]) -> Vec2
+	fn from([a0, a1]: [T; 2]) -> Vec2
 	{
-		Vec2(a[0].into(), a[1].into())
+		Vec2(a0.into(), a1.into())
 	}
 }
 
@@ -224,9 +224,9 @@ impl<T: From<f32>> From<Vec3> for (T, T, T)
 impl<T: Into<f32>> From<[T; 3]> for Vec3
 {
 	#[inline]
-	fn from(a: [T; 3]) -> Vec2
+	fn from([a0, a1, a2]: [T; 3]) -> Vec3
 	{
-		Vec2(a[0].into(), a[1].into(), a[2].into())
+		Vec3(a0.into(), a1.into(), a2.into())
 	}
 }
 
@@ -381,9 +381,9 @@ impl<T: From<f32>> From<Vec4> for (T, T, T, T)
 impl<T: Into<f32>> From<[T; 4]> for Vec4
 {
 	#[inline]
-	fn from(a: [T; 4]) -> Vec2
+	fn from([a0, a1, a2, a3]: [T; 4]) -> Vec4
 	{
-		Vec2(a[0].into(), a[1].into(), a[2].into(), a[3].into())
+		Vec4(a0.into(), a1.into(), a2.into(), a3.into())
 	}
 }
 

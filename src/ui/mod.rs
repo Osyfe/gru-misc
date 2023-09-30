@@ -217,4 +217,4 @@ pub trait Lens<U, T>
     fn with_mut<A, F: FnOnce(&mut T) -> A>(&self, data: &mut U, f: F) -> A;
 }
 
-pub use gru_ui_derive::Lens;
+pub use ui_derive::Lens;

@@ -1,5 +1,5 @@
 [workspace]
-members = ["gru-ui-derive"]
+members = ["ui-derive"]
 
 [package]
 name = "gru-misc"
@@ -13,7 +13,7 @@ math = ["static_assertions"]
 text_rast = ["ab_glyph", "ahash"]
 text_sdf = ["easy-signed-distance-field", "ahash"]
 paint = ["text_sdf", "math", "color"]
-ui = ["gru-ui-derive", "paint", "copypasta"]
+ui = ["ui-derive", "paint", "copypasta"]
 thread = ["flume"]
 time = ["spin_sleep"]
 rand = ["rand_raw", "rand_xoshiro", "rand_distr"]
@@ -30,7 +30,7 @@ easy-signed-distance-field = { version = "0.1.1", features = ["font"], optional 
 # text
 ahash = { version = "0.8.3", optional = true }
 # ui
-gru-ui-derive = { path = "gru-ui-derive", optional = true }
+ui-derive = { path = "ui-derive", optional = true }
 copypasta = { version = "0.8.2", optional = true }
 # thread
 flume = { version = "0.10.14", default-features = false, optional = true }

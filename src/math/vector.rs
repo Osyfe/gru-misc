@@ -248,6 +248,12 @@ impl Vec3
 	}
 
 	#[inline]
+	pub const fn one() -> Self
+	{
+		Self(1.0, 1.0, 1.0)
+	}
+
+	#[inline]
 	pub const fn e_x() -> Self
 	{
 		Self(1.0, 0.0, 0.0)
@@ -325,6 +331,18 @@ impl Vec3
 	pub fn component_abs(self) -> Self
 	{
 		Self(self.0.abs(), self.1.abs() , self.2.abs())
+	}
+
+	#[inline]
+	pub fn max_component(self) -> f32
+	{
+		self.0.max(self.1).max(self.2)
+	}
+
+	#[inline]
+	pub fn min_component(self) -> f32
+	{
+		self.0.min(self.1).min(self.2)
 	}
 
 	#[inline]

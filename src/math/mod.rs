@@ -109,6 +109,18 @@ impl Rect
     {
         self.max.1 - self.min.1
     }
+	
+	#[inline]
+	pub fn component_mul(self, scale: Vec2) -> Self
+	{
+		Self { min: self.min.component_mul(scale), max: self.max.component_mul(scale) }
+	}
+	
+	#[inline]
+	pub fn component_div(self, scale: Vec2) -> Self
+	{
+		Self { min: self.min.component_div(scale), max: self.max.component_div(scale) }
+	}
 
     #[inline]
     pub fn contains_l2(self, pos: Vec2) -> bool

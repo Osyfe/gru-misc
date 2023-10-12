@@ -182,6 +182,18 @@ impl Vec2
 	{
 		Self(self.0.abs(), self.1.abs())
 	}
+	
+	#[inline]
+	pub fn max_component(self) -> f32
+	{
+		self.0.max(self.1)
+	}
+
+	#[inline]
+	pub fn min_component(self) -> f32
+	{
+		self.0.min(self.1)
+	}
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
@@ -463,6 +475,18 @@ impl Vec4
 	pub fn component_inverse(self) -> Self
 	{
 		Self(1.0 / self.0, 1.0 / self.1, 1.0 / self.2, 1.0 / self.3)
+	}
+	
+	#[inline]
+	pub fn max_component(self) -> f32
+	{
+		self.0.max(self.1).max(self.2).max(self.3)
+	}
+
+	#[inline]
+	pub fn min_component(self) -> f32
+	{
+		self.0.min(self.1).min(self.2).min(self.3)
 	}
 
 	#[inline]

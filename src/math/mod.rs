@@ -111,6 +111,20 @@ impl Rect
     }
 	
 	#[inline]
+	pub fn center(self) -> Vec2
+	{
+		(self.max + self.min) * 0.5
+	}
+	
+	#[inline]
+	pub fn center_mul(self, scale: Vec2) -> Self
+	{
+		let center = self.center();
+		let centered = self - center;
+		centered.component_mul(scale) + center
+	}
+	
+	#[inline]
 	pub fn component_mul(self, scale: Vec2) -> Self
 	{
 		Self { min: self.min.component_mul(scale), max: self.max.component_mul(scale) }

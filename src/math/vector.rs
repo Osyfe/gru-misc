@@ -170,6 +170,18 @@ impl Vec2
 	{
 		Self(self.0 / other.0, self.1 / other.1)
 	}
+	
+	#[inline]
+	pub fn component_max(self, other: Self) -> Self
+	{
+		Self(self.0.max(other.0), self.1.max(other.1))
+	}
+	
+	#[inline]
+	pub fn component_min(self, other: Self) -> Self
+	{
+		Self(self.0.min(other.0), self.1.min(other.1))
+	}
 
 	#[inline]
 	pub fn component_inverse(self) -> Self

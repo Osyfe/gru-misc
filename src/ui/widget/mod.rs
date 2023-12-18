@@ -503,7 +503,6 @@ impl Widget<f32> for Slider
                 {
                     *data = (*data + dy * self.step).max(self.min).min(self.max);
                 }
-                
             },
             _ => {}
         }
@@ -592,8 +591,8 @@ impl Widget<f32> for VSlider
                 && pos.1 >= -0.5 && pos.1 <= self.size.1 + 0.5 //relaxed height bound
                 {
                     *data = (*data - dy * self.step).max(self.min).min(self.max);
+					ctx.request_update();
                 }
-                
             },
             _ => {}
         }
@@ -661,7 +660,6 @@ impl Widget<String> for Edit
 					ctx.request_update();
 				}
             }
-			
         }
     }
 

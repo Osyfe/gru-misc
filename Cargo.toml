@@ -18,7 +18,7 @@ thread = ["flume"]
 time = ["spin_sleep"]
 rand = ["rand_raw", "rand_xoshiro", "rand_distr"]
 color = []
-serde_impl = ["serde", "ahash/serde"]
+serde_impl = ["serde", "ahash/serde", "rand_xoshiro/serde1"]
 
 [dependencies]
 # math

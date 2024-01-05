@@ -344,6 +344,18 @@ impl Vec3
 	{
 		Self(self.0 / other.0, self.1 / other.1, self.2 / other.2)
 	}
+	
+	#[inline]
+	pub fn component_max(self, other: Self) -> Self
+	{
+		Self(self.0.max(other.0), self.1.max(other.1), self.2.max(other.2))
+	}
+	
+	#[inline]
+	pub fn component_min(self, other: Self) -> Self
+	{
+		Self(self.0.min(other.0), self.1.min(other.1), self.2.min(other.2))
+	}
 
 	#[inline]
 	pub fn component_inverse(self) -> Self
@@ -481,6 +493,18 @@ impl Vec4
 	pub fn component_div(self, other: Self) -> Self
 	{
 		Self(self.0 / other.0, self.1 / other.1, self.2 / other.2, self.3 / other.3)
+	}
+	
+	#[inline]
+	pub fn component_max(self, other: Self) -> Self
+	{
+		Self(self.0.max(other.0), self.1.max(other.1), self.2.max(other.2), self.3.max(other.3))
+	}
+	
+	#[inline]
+	pub fn component_min(self, other: Self) -> Self
+	{
+		Self(self.0.min(other.0), self.1.min(other.1), self.2.min(other.2), self.3.min(other.3))
 	}
 
 	#[inline]

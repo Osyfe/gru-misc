@@ -1,17 +1,9 @@
-math:
-	Vecs from/to Array
-
 windows icon:
 	https://docs.rs/winres/0.1.11/winres/
 	https://www.anthropicstudios.com/2021/01/05/setting-a-rust-windows-exe-icon/
 
 text:
 	kerning (bitmap gen and glyph placing)?
-	sdf
-
-ui:
-	icon
-	drop down etc.
-	split secondary align
+	msdf?
 
 perm utils

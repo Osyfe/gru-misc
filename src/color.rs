@@ -77,9 +77,10 @@ pub fn discretize(v: f32) -> u8
 }
 
 // Converts a HSV to a sRGB color. h is interpreted periodically with a period of 2*PI, 0 being red, and s and v should be normalized in [0, 1].
-pub fn hsv2srgb(h: f32, s: f32, v: f32) -> (f32, f32, f32)
+pub fn hsv2srgb(mut h: f32, s: f32, v: f32) -> (f32, f32, f32)
 {
-    let mut h = h % (2.0 * PI); if h < 0.0 { h += 2.0 * PI };
+	while h < 0.0 { h += 2.0 * PI };
+    h %= 2.0 * PI;
     let hi = ((h * 3.0 / PI).floor() as u8).max(0).min(6);
     let f = h * 3.0 / PI - hi as f32;
     let (p, q, t) = (v * (1.0 - s), v * (1.0 - s * f), v * (1.0 - s * (1.0 - f)));

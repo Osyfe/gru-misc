@@ -473,7 +473,7 @@ mod tests
 	#[test]
 	fn all_letters()
 	{
-		let (mut sdf, _) = Atlas::new(Font::new(include_bytes!("res/futuram.ttf")), 64.0, &(&Font::digits() | &Font::all_letters()) | &Font::text_special_characters(), 1024, 5);
+		let (mut sdf, _) = Atlas::new(Font::new(include_bytes!("../res/Latinia.ttf")), 64.0, &(&Font::digits() | &Font::all_letters()) | &Font::text_special_characters(), 1024, 5);
 		assert_eq!(sdf.len(), 1);
 		let image = GrayImage::from_raw(1024, 1024, sdf.pop().unwrap()).unwrap();
 		image.save_with_format("all_letters.png", ImageFormat::Png).unwrap();

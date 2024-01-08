@@ -71,6 +71,13 @@ pub use vector::*;
 pub use matrix::*;
 pub use rotor::*;
 
+#[inline]
+pub fn smoothstep(x: f32, edge_l: f32, edge_r: f32) -> f32
+{
+    let t = ((x - edge_l) / (edge_r - edge_l)).max(0.0).min(1.0);
+    t * t * (3.0 - 2.0 * t)
+}
+
 #[derive(Clone, Copy)]
 pub struct Rect
 {

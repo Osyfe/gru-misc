@@ -4,7 +4,7 @@ members = ["ui-derive"]
 [package]
 name = "gru-misc"
 version = "0.1.0"
-authors = ["Jannik Fehre"]
+authors = ["Jannik Fehre", "Fabian Osyguß"]
 license = "MIT"
 edition = "2021"
 

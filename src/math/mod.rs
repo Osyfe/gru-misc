@@ -78,6 +78,43 @@ pub fn smoothstep(x: f32, edge_l: f32, edge_r: f32) -> f32
     t * t * (3.0 - 2.0 * t)
 }
 
+#[inline]
+pub fn smootherstep(x: f32, edge_l: f32, edge_r: f32) -> f32
+{
+    let t = ((x - edge_l) / (edge_r - edge_l)).max(0.0).min(1.0);
+    t * t * t * (t * (6.0 * t - 15.0) + 10.0)
+}
+
+/*
+// Generalized smoothstep
+function generalSmoothStep(N, x) {
+  x = clamp(x, 0, 1); // x must be equal to or between 0 and 1
+  var result = 0;
+  for (var n = 0; n <= N; ++n)
+    result += pascalTriangle(-N - 1, n) *
+              pascalTriangle(2 * N + 1, N - n) *
+              Math.pow(x, N + n + 1);
+  return result;
+}
+
+// Returns binomial coefficient without explicit use of factorials,
+// which can't be used with negative integers
+function pascalTriangle(a, b) {
+  var result = 1; 
+  for (var i = 0; i < b; ++i)
+    result *= (a - i) / (i + 1);
+  return result;
+}
+
+function clamp(x, lowerlimit, upperlimit) {
+  if (x < lowerlimit)
+    x = lowerlimit;
+  if (x > upperlimit)
+    x = upperlimit;
+  return x;
+}
+*/
+
 #[derive(Clone, Copy)]
 pub struct Rect
 {

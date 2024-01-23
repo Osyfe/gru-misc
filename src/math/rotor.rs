@@ -143,7 +143,8 @@ impl Complex
 	#[inline]
 	pub fn exp(self) -> Self
 	{
-		Self { re: self.im.cos(), im: self.im.sin() } * self.re.exp()
+        let (sin, cos) = self.im.sin_cos();
+		Self { re: cos, im: sin } * self.re.exp()
 	}
 
 	#[inline]

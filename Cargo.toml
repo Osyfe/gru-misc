@@ -28,7 +28,7 @@ ab_glyph = { version = "0.2.21", optional = true }
 # text_sdf
 easy-signed-distance-field = { version = "0.1.1", features = ["font"], optional = true }
 # text
-ahash = { version = "0.8.3", optional = true }
+ahash = { version = "0.8.11", optional = true }
 # ui
 ui-derive = { path = "ui-derive", optional = true }
 copypasta = { version = "0.8.2", optional = true }

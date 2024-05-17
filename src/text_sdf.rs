@@ -109,9 +109,9 @@ pub struct Atlas
 
 impl Atlas
 {
-	pub fn new<I: IntoIterator<Item = char>>(font: Font, scale: f32, chars: I, texture_size: u32, padding: u32) -> (Vec<Vec<u8>>, Self)
+	pub fn new<I: IntoIterator<Item = char>>(font: Font, px: f32, chars: I, texture_size: u32, padding: u32) -> (Vec<Vec<u8>>, Self)
 	{
-		let mut builder = AtlasBuilder::new(font, scale, texture_size, padding);
+		let mut builder = AtlasBuilder::new(font, px, texture_size, padding);
 		builder.add(chars);
 		let (bitmap, atlas) = builder.finish();
 		(bitmap, atlas)

@@ -129,7 +129,7 @@ impl<'a, T, K: Hash + Eq> Ui<'a, T, K>
             //println!("Updating UI: {:?}", std::time::Instant::now());
             self.update_requested = false;
             self.painter.clear_frame(scale);
-            for (widget, _, active) in &mut self.widgets
+            for (widget, _, active) in &mut self.widgets.iter_mut().rev()
             {
                 if *active
                 {

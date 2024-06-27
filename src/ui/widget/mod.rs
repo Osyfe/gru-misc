@@ -17,6 +17,7 @@ pub trait WidgetExt<T>: Widget<T> + Sized
     fn watch(self) -> dynamic::Watch<T, Self> where T: Clone + PartialEq { dynamic::Watch::new(self) }
     fn transform<'a, U>(self, init: T, transformer: impl FnMut(&U) -> T + 'a) -> dynamic::Transform<'a, U, T, Self> { dynamic::Transform::new(self, init, transformer) }
     fn response<'a, K: Hash + Eq>(self, register: &Register<K>) -> interact::Response<'a, T, Self, K> where Self: 'a { interact::Response::new(self, register) }
+    fn event_block<F: Fn(&T) -> bool>(self, f: F) -> interact::EventBlock<T, Self, F> { interact::EventBlock::new(self, f) }
     fn style<F: Fn(&T, &mut style::StyleSet)>(self, styler: F) -> style::Style<T, Self, F> { style::Style::new(self, styler) }
 }
 
@@ -341,7 +342,7 @@ impl<T: Borrow<str>> Widget<T> for Label<T>
     #[inline]
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
     {
-        ctx.painter.draw_text(Rect::new_origin(size), data.borrow(), self.text_size, self.align, false, ctx.style.text.get(interact::WidgetState::Cold));
+        ctx.painter.draw_text(Rect::new_origin(size), data.borrow(), self.text_size, self.align, false, ctx.style.text.get(ctx.state));
         self.size
     }
 }
@@ -680,9 +681,10 @@ impl Widget<String> for Edit
     fn paint(&mut self, ctx: &mut PaintCtx, data: &String, size: Vec2) -> Vec2
     {
         let rect = Rect::new_origin(size);
-        ctx.painter.draw_rect(rect, ctx.style.data.get(ctx.state));
+        let state = if self.active { interact::WidgetState::Hot } else { ctx.state };
+        ctx.painter.draw_rect(rect, ctx.style.data.get(state));
         let display_data = data.clone() + if self.active && self.max_length.map_or(true, |ml| data.len() < ml) { "_" } else { "" };
-        ctx.painter.draw_text(Rect::new_origin(size), &display_data, self.size, Align::Left, false, ctx.style.text.get(ctx.state));
+        ctx.painter.draw_text(Rect::new_origin(size), &display_data, self.size, Align::Left, false, ctx.style.text.get(state));
         size
     }
 

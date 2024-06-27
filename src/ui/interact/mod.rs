@@ -1,4 +1,4 @@
-use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, Event, MouseButton, Key}, paint::{Vec2, Rect}, pods::WidgetPodS};
+use super::{Register, Widget, EventCtx, LayoutCtx, PaintCtx, event::{EventPod, Event, MouseButton, Key}, paint::{Vec2, Rect}, pods::{WidgetPod, WidgetPodS}};
 use std::{hash::Hash, collections::hash_map::Entry, rc::Rc, cell::RefCell};
 use ahash::AHashMap;
 
@@ -142,5 +142,46 @@ impl<'a, T, W: Widget<T>, K: Hash + Eq> Response<'a, T, W, K>
     {
         self.action = Some(Box::new(action));
         self
+    }
+}
+
+pub struct EventBlock<T, W: Widget<T>, F: Fn(&T) -> bool>
+{
+    inner: WidgetPod<T, W>,
+    f: F
+}
+
+impl<T, W: Widget<T>, F: Fn(&T) -> bool> Widget<T> for EventBlock<T, W, F>
+{
+    #[inline]
+    fn event(&mut self, ctx: &mut EventCtx, data: &mut T, event: &mut EventPod)
+    {
+        if !(self.f)(data) { self.inner.widget.event(ctx, data, event); }
+    }
+    
+    #[inline]
+    fn update(&mut self, data: &mut T) -> bool
+    {
+        self.inner.widget.update(data)
+    }
+
+    #[inline]
+    fn layout(&mut self, ctx: &mut LayoutCtx, data: &T, size: Rect) -> Vec2
+    {
+        self.inner.widget.layout(ctx, data, size)
+    }
+
+    #[inline]
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &T, size: Vec2) -> Vec2
+    {
+        self.inner.widget.paint(ctx, data, size)
+    }
+}
+
+impl<T, W: Widget<T>, F: Fn(&T) -> bool> EventBlock<T, W, F>
+{
+    pub fn new(widget: W, f: F) -> Self
+    {
+        Self { inner: WidgetPod::new(widget), f }
     }
 }

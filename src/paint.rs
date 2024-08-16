@@ -110,7 +110,11 @@ impl Painter
 
     pub fn clear_frame(&mut self, scale: f32)
     {
-        if self.scale != scale { self.text = Some(Self::atlas_builder(self.text.take().unwrap().into_font(), scale)); }
+        if self.scale != scale
+        {
+            self.text = Some(Self::atlas_builder(self.text.take().unwrap().into_font(), scale));
+            self.text_version += 1;
+        }
         self.origin = Vec2(0.0, 0.0);
         self.scale = scale;
         self.vertices.clear();

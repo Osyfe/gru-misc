@@ -6,4 +6,7 @@ text:
 	kerning (bitmap gen and glyph placing)?
 	msdf?
 
+fps:
+	dep upgrade
+
 perm utils

@@ -87,6 +87,12 @@ impl Mat2
 		Self(Vec2(self.0.0, self.1.0), Vec2(self.0.1, self.1.1))
 	}
 
+    #[inline]
+    pub fn det(self) -> f32
+    {
+        self.0.0 * self.1.1 - self.0.1 * self.1.0
+    }
+
 	#[inline]
 	pub const fn to_array(&self) -> [f32; 4]
 	{
@@ -230,6 +236,17 @@ impl Mat3
         	Vec3(self.0.2, self.1.2, self.2.2)
         )
 	}
+
+    #[inline]
+    pub fn det(self) -> f32
+    {
+        self.0.0 * self.1.1 * self.2.2
+      + self.1.0 * self.2.1 * self.0.2
+      + self.2.0 * self.0.1 * self.1.2
+      - self.0.2 * self.1.1 * self.2.0
+      - self.0.1 * self.1.0 * self.2.2
+      - self.0.0 * self.1.2 * self.2.1
+    }
 
 	#[inline]
 	pub const fn to_mat4(self) -> Mat4

@@ -128,16 +128,16 @@ impl Complex
 		self.r2().sqrt()
 	}
 
+    #[inline]
+	pub fn r2(self) -> f32
+	{
+		self.re * self.re + self.im * self.im
+	}
+
 	#[inline]
 	pub fn phi(self) -> f32
 	{
 		self.im.atan2(self.re)
-	}
-
-	#[inline]
-	pub fn r2(self) -> f32
-	{
-		self.re * self.re + self.im * self.im
 	}
 
 	#[inline]

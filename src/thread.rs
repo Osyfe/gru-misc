@@ -174,8 +174,8 @@ impl Worker
 
 impl ResSlot
 {
-    fn free(&self) -> bool {  if let Self::Free = self { true } else { false } }
-    fn pending(&self) -> bool {  if let Self::Pending = self { true } else { false } }
+    fn free(&self) -> bool {  matches!(self, Self::Free) }
+    fn pending(&self) -> bool {  matches!(self, Self::Pending) }
 }
 
 impl<T> Clone for TaskKey<T>

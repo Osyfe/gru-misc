@@ -1,5 +1,5 @@
 use easy_signed_distance_field as sdf;
-use ahash::{AHashSet, AHashMap};
+use ahash::AHashMap;
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
 
@@ -16,72 +16,63 @@ impl Font
         Self { font }
     }
 
-    pub fn digits() -> AHashSet<char>
+    pub fn digits() -> impl Iterator<Item = char>
 	{
-		let mut chars = AHashSet::new();
-    	for i in 48..=57 { chars.insert(i.into()); }
-    	chars
+        let ascii = 48..=57;
+        ascii.map(|a| a.into())
 	}
 
-	pub fn lowercase_letters() -> AHashSet<char>
+	pub fn lowercase_letters() -> impl Iterator<Item = char>
 	{
-		let mut chars = AHashSet::new();
-    	for i in 97..=122 { chars.insert(i.into()); }
-    	chars
+    	let ascii = 97..=122;
+    	ascii.map(|a| a.into())
 	}
 
-	pub fn uppercase_letters() -> AHashSet<char>
+	pub fn uppercase_letters() -> impl Iterator<Item = char>
 	{
-		let mut chars = AHashSet::new();
-    	for i in 65..=90 { chars.insert(i.into()); }
-    	chars
+    	let ascii = 65..=90;
+    	ascii.map(|a| a.into())
 	}
 
-	pub fn all_letters() -> AHashSet<char>
+	pub fn all_letters() -> impl Iterator<Item = char>
 	{
-		&Self::lowercase_letters() | &Self::uppercase_letters()
+		Self::lowercase_letters().chain(Self::uppercase_letters())
 	}
 
-	pub fn text_special_characters() -> AHashSet<char>
+	pub fn text_special_characters() -> impl Iterator<Item = char>
 	{
-		let mut chars = AHashSet::new();
-    	for i in 33..=34 { chars.insert(i.into()); } // !"
-    	for i in 37..=41 { chars.insert(i.into()); } // %&'()
-    	for i in 44..=47 { chars.insert(i.into()); } // ,-./
-    	for i in 58..=59 { chars.insert(i.into()); } // :;
-    	for i in 63..=64 { chars.insert(i.into()); } // ?@
-    	for i in 95..=96 { chars.insert(i.into()); } // _`
-    	chars
+    	let ascii = 33..=34; // !"
+    	let ascii = ascii.chain(37..=41); // %&'()
+    	let ascii = ascii.chain(44..=47); // ,-./
+    	let ascii = ascii.chain(58..=59); // :;
+    	let ascii = ascii.chain(63..=64); // ?@
+    	let ascii = ascii.chain(95..=96); // _`
+    	ascii.map(|a| a.into())
 	}
 
-	pub fn other_special_characters() -> AHashSet<char>
+	pub fn other_special_characters() -> impl Iterator<Item = char>
 	{
-		let mut chars = AHashSet::new();
-    	for i in 35..=36 { chars.insert(i.into()); } // #$
-    	for i in 42..=43 { chars.insert(i.into()); } // *+
-    	for i in 60..=62 { chars.insert(i.into()); } // <=>
-    	for i in 91..=94 { chars.insert(i.into()); } // [\]^
-    	for i in 123..=126 { chars.insert(i.into()); } // {|}~
-    	chars
+    	let ascii = 35..=36; // #$
+    	let ascii = ascii.chain(42..=43); // *+
+    	let ascii = ascii.chain(60..=62); // <=>
+    	let ascii = ascii.chain(91..=94); // [\]^
+    	let ascii = ascii.chain(123..=126); // {|}~
+    	ascii.map(|a| a.into())
 	}
 
-	pub fn all_special_characters() -> AHashSet<char>
+	pub fn all_special_characters() -> impl Iterator<Item = char>
 	{
-		&Self::text_special_characters() | &Self::other_special_characters()
+		Self::text_special_characters().chain(Self::other_special_characters())
 	}
 
-	pub fn german_extra() -> AHashSet<char>
+	pub fn german_extra() -> impl Iterator<Item = char>
 	{
-		let mut chars = AHashSet::new();
-    	for i in &['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü', 'ẞ'] { chars.insert(*i); }
-    	chars
+    	['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü', 'ẞ'].into_iter()
 	}
 
-	pub fn vocal_accents() -> AHashSet<char>
+	pub fn vocal_accents() -> impl Iterator<Item = char>
 	{
-		let mut chars = AHashSet::new();
-    	for i in ['á', 'à', 'â', 'é', 'è', 'ê', 'í', 'ì', 'î', 'ó', 'ò', 'ô', 'ú', 'ù', 'û', 'Á', 'À', 'Â', 'É', 'È', 'Ê', 'Í', 'Ì', 'Î', 'Ó', 'Ò', 'Ô', 'Ú', 'Ù', 'Û'] { chars.insert(i); }
-    	chars
+    	['á', 'à', 'â', 'é', 'è', 'ê', 'í', 'ì', 'î', 'ó', 'ò', 'ô', 'ú', 'ù', 'û', 'Á', 'À', 'Â', 'É', 'È', 'Ê', 'Í', 'Ì', 'Î', 'Ó', 'Ò', 'Ô', 'Ú', 'Ù', 'Û'].into_iter()
 	}
 }
 
@@ -473,7 +464,7 @@ mod tests
 	#[test]
 	fn all_letters()
 	{
-		let (mut sdf, _) = Atlas::new(Font::new(include_bytes!("../res/Latinia.ttf")), 64.0, &(&Font::digits() | &Font::all_letters()) | &Font::text_special_characters(), 1024, 5);
+		let (mut sdf, _) = Atlas::new(Font::new(include_bytes!("../res/Latinia.ttf")), 64.0, Font::digits().chain(Font::all_letters()).chain(Font::text_special_characters()), 1024, 5);
 		assert_eq!(sdf.len(), 1);
 		let image = GrayImage::from_raw(1024, 1024, sdf.pop().unwrap()).unwrap();
 		image.save_with_format("all_letters.png", ImageFormat::Png).unwrap();

@@ -38,7 +38,7 @@ impl Painter
     fn atlas_builder(font: Font, scale: f32) -> AtlasBuilder
     {
         let mut builder = AtlasBuilder::new(font, 3.0 * scale, TEXTURE_SIZE, TEXTURE_PADDING);
-        builder.add(&(&Font::digits() | &Font::all_letters()) | &Font::text_special_characters());
+        builder.add(Font::digits().chain(Font::all_letters()).chain(Font::text_special_characters()));
         builder.atlas_mut().default(Some('?'));
         builder
     }

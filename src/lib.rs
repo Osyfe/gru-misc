@@ -1,5 +1,7 @@
 #[cfg(feature = "math")]
 pub mod math;
+#[cfg(feature = "marching_cubes")]
+pub mod marching_cubes;
 #[cfg(feature = "text_rast")]
 pub mod text_rast;
 #[cfg(feature = "text_sdf")]

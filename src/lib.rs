@@ -4,10 +4,6 @@ pub mod math;
 pub mod text_rast;
 #[cfg(feature = "text_sdf")]
 pub mod text_sdf;
-#[cfg(feature = "paint")]
-pub mod paint;
-#[cfg(feature = "ui")]
-pub mod ui;
 #[cfg(feature = "thread")]
 pub mod thread;
 #[cfg(feature = "time")]

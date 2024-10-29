@@ -194,6 +194,12 @@ impl Vec2
 	{
 		Self(self.0.abs(), self.1.abs())
 	}
+    
+    #[inline]
+	pub fn component_sum(self) -> f32
+	{
+		self.0 + self.1
+	}
 	
 	#[inline]
 	pub fn max_component(self) -> f32
@@ -368,6 +374,12 @@ impl Vec3
 	{
 		Self(self.0.abs(), self.1.abs() , self.2.abs())
 	}
+    
+    #[inline]
+	pub fn component_sum(self) -> f32
+	{
+		self.0 + self.1 + self.2
+	}
 
 	#[inline]
 	pub fn max_component(self) -> f32
@@ -511,6 +523,12 @@ impl Vec4
 	pub fn component_inverse(self) -> Self
 	{
 		Self(1.0 / self.0, 1.0 / self.1, 1.0 / self.2, 1.0 / self.3)
+	}
+    
+    #[inline]
+	pub fn component_sum(self) -> f32
+	{
+		self.0 + self.1 + self.2 + self.3
 	}
 	
 	#[inline]

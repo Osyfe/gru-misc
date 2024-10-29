@@ -79,10 +79,24 @@ pub fn smoothstep(x: f32, edge_l: f32, edge_r: f32) -> f32
 }
 
 #[inline]
+pub fn d_smoothstep(x: f32, edge_l: f32, edge_r: f32) -> f32
+{
+    let t = ((x - edge_l) / (edge_r - edge_l)).max(0.0).min(1.0);
+    6.0 * t * (1.0 - t)
+}
+
+#[inline]
 pub fn smootherstep(x: f32, edge_l: f32, edge_r: f32) -> f32
 {
     let t = ((x - edge_l) / (edge_r - edge_l)).max(0.0).min(1.0);
     t * t * t * (t * (6.0 * t - 15.0) + 10.0)
+}
+
+#[inline]
+pub fn d_smootherstep(x: f32, edge_l: f32, edge_r: f32) -> f32
+{
+    let t = ((x - edge_l) / (edge_r - edge_l)).max(0.0).min(1.0);
+    30.0 * t * t * (t * (t - 2.0) + 1.0)
 }
 
 /*

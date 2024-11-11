@@ -236,6 +236,18 @@ impl Mat3
         	Vec3(self.0.2, self.1.2, self.2.2)
         )
 	}
+    
+    #[inline]
+    pub fn inverse(self) -> Self
+    {
+        let norm = 1.0 / self.det();
+        Self
+        (
+            Vec3(self.1.1 * self.2.2 - self.2.1 * self.1.2, self.2.1 * self.0.2 - self.0.1 * self.2.2, self.0.1 * self.1.2 - self.1.1 * self.0.2) * norm,
+            Vec3(self.2.0 * self.1.2 - self.1.0 * self.2.2, self.0.0 * self.2.2 - self.2.0 * self.0.2, self.1.0 * self.0.2 - self.0.0 * self.1.2) * norm,
+            Vec3(self.1.0 * self.2.1 - self.2.0 * self.1.1, self.2.0 * self.0.1 - self.0.0 * self.2.1, self.0.0 * self.1.1 - self.1.0 * self.0.1) * norm
+        )
+    }
 
     #[inline]
     pub fn det(self) -> f32

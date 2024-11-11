@@ -37,7 +37,7 @@ pub fn build(sdf: impl Fn(Vec3) -> f32, config: Config) -> (Vec<Vec3>, Vec<u32>)
         for yi in 0..corner_counts.1
         {
             let cur_y = yi as f32 * step_sizes.1 + origin.1;
-            let vertices = &mut vertices[(yi  * corner_counts.1) as usize..];
+            let vertices = &mut vertices[(yi  * corner_counts.0) as usize..];
             for xi in 0..corner_counts.0
             {
                 let cur_x = xi as f32 * step_sizes.0 + origin.0;
@@ -77,14 +77,14 @@ pub fn build(sdf: impl Fn(Vec3) -> f32, config: Config) -> (Vec<Vec3>, Vec<u32>)
 
                 let corner_values =
                 [
-                    doing_vertices[((yi + 1) * corner_counts.1 + xi) as usize],
-                    doing_vertices[((yi + 1) * corner_counts.1 + xi + 1) as usize],
-                    done_vertices[((yi + 1) * corner_counts.1 + xi + 1) as usize],
-                    done_vertices[((yi + 1) * corner_counts.1 + xi) as usize],
-                    doing_vertices[(yi * corner_counts.1 + xi) as usize],
-                    doing_vertices[(yi * corner_counts.1 + xi + 1) as usize],
-                    done_vertices[(yi * corner_counts.1 + xi + 1) as usize],
-                    done_vertices[(yi * corner_counts.1 + xi) as usize]
+                    doing_vertices[((yi + 1) * corner_counts.0 + xi) as usize],
+                    doing_vertices[((yi + 1) * corner_counts.0 + xi + 1) as usize],
+                    done_vertices[((yi + 1) * corner_counts.0 + xi + 1) as usize],
+                    done_vertices[((yi + 1) * corner_counts.0 + xi) as usize],
+                    doing_vertices[(yi * corner_counts.0 + xi) as usize],
+                    doing_vertices[(yi * corner_counts.0 + xi + 1) as usize],
+                    done_vertices[(yi * corner_counts.0 + xi + 1) as usize],
+                    done_vertices[(yi * corner_counts.0 + xi) as usize]
                 ];
 
                 let table_code =

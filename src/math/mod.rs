@@ -63,6 +63,7 @@ macro_rules! impl_div_assign
     }
 }
 
+mod tests;
 mod vector;
 mod matrix;
 mod rotor;

@@ -54,6 +54,7 @@ fn rotor_from_plane()
 }
 */
 
+#[allow(unused)]
 struct Vec3Prec(Vec3, usize);
 
 impl Display for Vec3Prec

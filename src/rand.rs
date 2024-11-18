@@ -1,11 +1,11 @@
-pub use rand_raw::{Rng, seq::SliceRandom as Slice};
+pub use rand::{Rng, seq::SliceRandom as Slice};
 pub use rand_distr::{self as distr, Distribution};
 
 pub type Algo = rand_xoshiro::Xoshiro256PlusPlus;
 
 pub fn rng_seed(seed: u64) -> Algo
 {
-    use rand_raw::SeedableRng;
+    use rand::SeedableRng;
     Algo::seed_from_u64(seed)
 }
 
@@ -17,6 +17,6 @@ pub fn rng_instant() -> Algo
 
 pub fn rng_entropy() -> Algo
 {
-	use rand_raw::{rngs::OsRng, RngCore};
+	use rand::{rngs::OsRng, RngCore};
     rng_seed(OsRng.next_u64())
 }

@@ -1,3 +1,6 @@
+[workspace]
+members = ["file-tree-derive"]
+
 [package]
 name = "gru-misc"
 version = "0.1.0"
@@ -11,11 +14,13 @@ marching_cubes = ["math", "ahash"]
 text_rast = ["ab_glyph", "ahash"]
 text_sdf = ["easy-signed-distance-field", "ahash"]
 thread = ["flume"]
+futures = ["pin-project"]
 time = ["spin_sleep"]
 rand = ["dep:rand", "rand_xoshiro", "rand_distr"]
 color = []
 jpg = ["zune-jpeg"]
 gltf = ["math", "dep:gltf"]
+file_tree = ["file-tree-derive"]
 serde_impl = ["serde", "ahash/serde", "rand_xoshiro/serde1"]
 
 [dependencies]
@@ -29,6 +34,8 @@ ab_glyph = { version = "0.2.21", optional = true }
 easy-signed-distance-field = { version = "0.1.1", features = ["font"], optional = true }
 # thread
 flume = { version = "0.11.1", default-features = false, optional = true }
+# futures
+pin-project = { version = "1.1.7", optional = true }
 # time
 spin_sleep = { version = "1.1.1", optional = true }
 # rand
@@ -37,8 +44,10 @@ rand_xoshiro = { version = "0.6.0", optional = true }
 rand_distr = { version = "0.4.3", default-features = false, features = ["std_math"], optional = true }
 # jpg
 zune-jpeg = { version = "0.4.13", optional = true }
-#gltf
+# gltf
 gltf = { version = "1.4.1", default-features = false, features = ["names"], optional = true }
+# file_tree
+file-tree-derive = { path = "file-tree-derive", optional = true }
 # serde_impl
 serde = { version = "1.0.164", default-features = false, features = ["derive", "std"], optional = true }
 

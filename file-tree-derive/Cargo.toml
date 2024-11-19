@@ -1,0 +1,13 @@
+[package]
+name = "file-tree-derive"
+version = "0.1.0"
+authors = ["Jannik Fehre", "Fabian Osyguß"]
+license = "MIT"
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.89"
+quote = "1.0.37"

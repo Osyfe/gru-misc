@@ -94,8 +94,8 @@ impl Model
                 let data = &data[start..(start + accessor.size())];
                 match accessor.data_type()
                 {
-                    accessor::DataType::U16 => for int in data.chunks_exact(2) { indices.push(u16::from_ne_bytes(int.try_into().unwrap()) as u32); },
-                    accessor::DataType::U32 => for int in data.chunks_exact(4) { indices.push(u32::from_ne_bytes(int.try_into().unwrap())); },
+                    accessor::DataType::U16 => for int in data.chunks_exact(2) { indices.push(u16::from_le_bytes(int.try_into().unwrap()) as u32); },
+                    accessor::DataType::U32 => for int in data.chunks_exact(4) { indices.push(u32::from_le_bytes(int.try_into().unwrap())); },
                     _ => unreachable!()
                 }
             }

@@ -428,6 +428,35 @@ impl Mat4
 		)
 	}
 
+    //z_lin = z_sample * z_near / (z_sample * (z_near - z_far) + z_far) ... probably
+    #[inline]
+    pub fn perspective_wgpu(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
+    {
+        let a = 1.0 / (fovy / 2.0).tan();
+		let b = z_far / (z_far - z_near);
+		Self
+		(
+			Vec4(a / aspect, 0.0, 0.0, 0.0),
+			Vec4(0.0, a, 0.0, 0.0),
+			Vec4(0.0, 0.0, -b, -1.0),
+			Vec4(0.0, 0.0, -z_near * b, 0.0)
+		)
+    }
+
+    #[inline]
+	pub fn perspective_wgpu_inverse(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
+	{
+		let a_inv = (fovy / 2.0).tan();
+		let b_inv = (z_far - z_near) / z_far;
+		Self
+		(
+			Vec4(a_inv * aspect, 0.0, 0.0, 0.0),
+			Vec4(0.0, a_inv, 0.0, 0.0),
+			Vec4(0.0, 0.0, 0.0, -b_inv / z_near),
+			Vec4(0.0, 0.0, -1.0, 1.0 / z_near)
+		)
+	}
+
 	#[inline]
 	pub const fn translation(Vec3(dx, dy, dz): Vec3) -> Self
 	{

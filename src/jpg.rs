@@ -8,6 +8,15 @@ pub enum Channels
 
 impl Channels
 {
+    fn channels(self) -> u8
+    {
+        match self
+        {
+            Self::L => 1,
+            Self::RGBA | Self::BGRA => 4
+        }
+    }
+
     fn check(self, components: u8)
     {
         match self
@@ -53,6 +62,7 @@ pub struct JPG
 {
     pub width: u32,
     pub height: u32,
+    pub channels: u8,
     pub data: Vec<u8>
 }
 
@@ -89,7 +99,17 @@ impl JPG
         {
             width: info.width as u32,
             height: info.height as u32,
+            channels: config.channels.channels(),
             data
         }
+    }
+
+    pub fn extract_channel(&mut self, channel: u8)
+    {
+        if self.channels != 4 { panic!("no 4 channels"); }
+        let mut data = Vec::with_capacity((self.width * self.height) as usize);
+        for pixels in self.data.array_chunks::<4>() { data.push(pixels[channel as usize]); }
+        self.channels = 1;
+        self.data = data;
     }
 }

@@ -1,3 +1,4 @@
+#![cfg_attr(feature = "futures", feature(noop_waker))]
 #![cfg_attr(any(feature = "jpg", feature = "gltf"), feature(array_chunks))]
 
 #[cfg(feature = "math")]
@@ -10,13 +11,17 @@ pub mod text_rast;
 pub mod text_sdf;
 #[cfg(feature = "thread")]
 pub mod thread;
+#[cfg(feature = "futures")]
+pub mod futures;
 #[cfg(feature = "time")]
 pub mod time;
 #[cfg(feature = "rand")]
 pub mod rand;
+#[cfg(feature = "color")]
+pub mod color;
 #[cfg(feature = "jpg")]
 pub mod jpg;
 #[cfg(feature = "gltf")]
 pub mod gltf;
-#[cfg(feature = "color")]
-pub mod color;
+#[cfg(feature = "file_tree")]
+pub mod file_tree;

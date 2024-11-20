@@ -19,8 +19,8 @@ pub mod time;
 pub mod rand;
 #[cfg(feature = "color")]
 pub mod color;
-#[cfg(feature = "jpg")]
-pub mod jpg;
+#[cfg(any(feature = "jpg", feature = "png"))]
+pub mod image;
 #[cfg(feature = "gltf")]
 pub mod gltf;
 #[cfg(feature = "file_tree")]

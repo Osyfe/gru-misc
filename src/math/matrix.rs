@@ -369,7 +369,10 @@ impl Mat4
 			Vec4(0.0, 0.0, 0.0, 1.0)
 		)
 	}
-	//z_lin = z_sample * z_near / (z_sample * (z_near - z_far) + z_far)
+	
+    //z_lin = z_ndc * z_near / (z_ndc * (z_near - z_far) + z_far)
+    //z_ndc = z_lin * z_far / (z_lin * (z_far - z_near) + z_near)
+    
 	#[inline]
 	pub fn perspective_opengl(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
 	{
@@ -399,7 +402,6 @@ impl Mat4
 		)
 	}
 
-	//z_lin = z_sample * z_near / (z_sample * (z_near - z_far) + z_far)
 	#[inline]
 	pub fn perspective_vulkan(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
 	{
@@ -428,7 +430,6 @@ impl Mat4
 		)
 	}
 
-    //z_lin = z_sample * z_near / (z_sample * (z_near - z_far) + z_far) ... probably
     #[inline]
     pub fn perspective_wgpu(aspect: f32, fovy: f32, z_near: f32, z_far: f32) -> Self
     {

@@ -1,5 +1,5 @@
 #![cfg_attr(feature = "futures", feature(noop_waker))]
-#![cfg_attr(any(feature = "jpg", feature = "gltf"), feature(array_chunks))]
+#![cfg_attr(any(feature = "jpg", feature = "png", feature = "gltf"), feature(array_chunks))]
 
 #[cfg(feature = "math")]
 pub mod math;

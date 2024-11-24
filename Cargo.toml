@@ -53,6 +53,8 @@ gltf = { version = "1.4.1", default-features = false, features = ["names"], opti
 file-tree-derive = { path = "file-tree-derive", optional = true }
 # serde_impl
 serde = { version = "1.0.164", default-features = false, features = ["derive", "std"], optional = true }
+# bytemuck
+bytemuck = { version = "1.20.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
 image = { version = "0.24.6", default-features = false, features = ["png"] }

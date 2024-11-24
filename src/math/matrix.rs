@@ -1,5 +1,7 @@
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
+#[cfg(feature = "bytemuck")]
+use bytemuck::{Pod, Zeroable};
 
 use super::*;
 
@@ -7,6 +9,7 @@ use super::*;
 
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 #[repr(C)]
 pub struct Mat2(pub Vec2, pub Vec2);
 static_assertions::const_assert_eq!(std::mem::size_of::<Mat2>(), 16);
@@ -102,6 +105,7 @@ impl Mat2
 
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 #[repr(C)]
 pub struct Mat3(pub Vec3, pub Vec3, pub Vec3);
 static_assertions::const_assert_eq!(std::mem::size_of::<Mat3>(), 36);
@@ -281,6 +285,7 @@ impl Mat3
 
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 #[repr(C)]
 pub struct Mat4(pub Vec4, pub Vec4, pub Vec4, pub Vec4);
 static_assertions::const_assert_eq!(std::mem::size_of::<Mat4>(), 64);

@@ -1,5 +1,7 @@
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
+#[cfg(feature = "bytemuck")]
+use bytemuck::{Pod, Zeroable};
 
 use super::*;
 
@@ -7,6 +9,8 @@ use super::*;
 
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
+#[repr(C)]
 pub struct Complex
 {
 	pub re: f32,
@@ -164,6 +168,8 @@ impl Complex
 
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
+#[repr(C)]
 pub struct Rotor
 {
 	s: f32, //scalar

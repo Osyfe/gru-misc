@@ -1,5 +1,7 @@
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
+#[cfg(feature = "bytemuck")]
+use bytemuck::{Pod, Zeroable};
 
 use super::*;
 
@@ -61,6 +63,7 @@ macro_rules! impl_ops
 
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 #[repr(C)]
 pub struct Vec2(pub f32, pub f32);
 
@@ -216,6 +219,7 @@ impl Vec2
 
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 #[repr(C)]
 pub struct Vec3(pub f32, pub f32, pub f32);
 
@@ -409,6 +413,7 @@ impl Vec3
 
 #[derive(Clone, Copy, PartialEq, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 #[repr(C)]
 pub struct Vec4(pub f32, pub f32, pub f32, pub f32);
 

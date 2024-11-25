@@ -54,6 +54,11 @@ impl Color
     {
         (discretize(rgb2srgb(self.0)), discretize(rgb2srgb(self.1)), discretize(rgb2srgb(self.2)), discretize(self.3))
     }
+    
+    pub fn mul(self, other: Color) -> Self
+    {
+        Self(self.0 * other.0, self.1 * other.1, self.2 * other.2, self.3 * other.3)
+    }
 }
 
 pub fn rgb2srgb(rgb: f32) -> f32

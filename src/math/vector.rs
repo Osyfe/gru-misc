@@ -408,6 +408,12 @@ impl Vec3
 	{
 		Vec4(self.0, self.1, self.2, 1.0)
 	}
+    
+    #[inline]
+	pub const fn with_w(self, w: f32) -> Vec4
+	{
+		Vec4(self.0, self.1, self.2, w)
+	}
 }
 
 

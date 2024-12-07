@@ -57,6 +57,12 @@ impl_mul_assign!(Mat2, Self);
 
 impl Mat2
 {
+    #[inline]
+    pub const fn zero() -> Self
+    {
+        Self(Vec2::zero(), Vec2::zero())
+    }
+    
 	#[inline]
 	pub const fn identity() -> Self
 	{
@@ -172,6 +178,12 @@ impl_mul_assign!(Mat3, Self);
 
 impl Mat3
 {
+    #[inline]
+    pub const fn zero() -> Self
+    {
+        Self(Vec3::zero(), Vec3::zero(), Vec3::zero())
+    }
+    
 	#[inline]
 	pub const fn identity() -> Self
 	{
@@ -363,6 +375,12 @@ impl_mul_assign!(Mat4, Self);
 
 impl Mat4
 {
+    #[inline]
+    pub const fn zero() -> Self
+    {
+        Self(Vec4::zero(), Vec4::zero(), Vec4::zero(), Vec4::zero())
+    }
+    
 	#[inline]
 	pub const fn identity() -> Self
 	{

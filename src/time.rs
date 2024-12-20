@@ -1,35 +1,59 @@
+use std::time::{Instant, Duration};
+
+struct Limiter
+{
+    target_dt: Duration,
+    sleeper: spin_sleep::SpinSleeper
+}
+
+impl Limiter
+{
+    fn new(old: Option<Self>, max_fps: u32) -> Self
+    {
+        Self
+        {
+            target_dt: Duration::from_secs_f64(1.0 / max_fps as f64),
+            sleeper: old.map(|old| old.sleeper).unwrap_or_default()
+        }
+    }
+}
+
 pub struct FPS
 {
-    loop_helper: spin_sleep::LoopHelper,
+    limiter: Option<Limiter>,
+    last_time: Instant,
     current_fps: u32
 }
 
 impl FPS
 {
-    pub fn new(max_fps: Option<usize>) -> Self
+    pub fn new(max_fps: Option<u32>) -> Self
     {
-        let loop_helper = spin_sleep::LoopHelper::builder().report_interval_s(1.0);
-        let loop_helper = match max_fps
+        Self
         {
-            Some(max_fps) => loop_helper.build_with_target_rate(max_fps as f64),
-            None => loop_helper.build_without_target_rate()
-        };
-        Self { loop_helper, current_fps: 0 }
+            limiter: max_fps.map(|max_fps| Limiter::new(None, max_fps)),
+            last_time: Instant::now(),
+            current_fps: 0
+        }
     }
 
-    pub fn renew(&mut self, max_fps: Option<usize>)
+    pub fn renew(&mut self, max_fps: Option<u32>)
     {
-        *self = Self::new(max_fps);
+        self.limiter = max_fps.map(|max_fps| Limiter::new(self.limiter.take(), max_fps));
     }
 
     pub fn dt(&mut self) -> f32
     {
-        if let Some(fps) = self.loop_helper.report_rate()
+        if let Some(limiter) = &self.limiter
         {
-            self.current_fps = fps.round() as u32;
+            let deadline = self.last_time + limiter.target_dt;
+            limiter.sleeper.sleep_until(deadline);
         }
-        self.loop_helper.loop_sleep();
-        self.loop_helper.loop_start_s() as f32
+        let now = Instant::now();
+        let dt = (now - self.last_time).as_secs_f32();
+        self.last_time = now;
+        self.current_fps = (1.0 / dt).round() as u32;
+        dt
     }
 
     pub fn current_fps(&self) -> u32

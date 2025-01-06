@@ -345,6 +345,12 @@ impl Rotor
 	{
 		self.to_mat3().to_mat4() //gets optimised in release mode
 	}
+    
+    #[inline]
+    pub fn to_components(self) -> (f32, [f32; 3])
+    {
+        (self.s, [self.yz, self.zx, self.xy])
+    }
 
 	#[inline]
 	pub fn fix(self) -> Self

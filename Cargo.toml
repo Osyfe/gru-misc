@@ -6,7 +6,7 @@ name = "gru-misc"
 version = "0.1.0"
 authors = ["Jannik Fehre", "Fabian Osyguß"]
 license = "MIT"
-edition = "2021"
+edition = "2024"
 
 [features]
 math = ["static_assertions"]

@@ -123,12 +123,12 @@ impl Pool
     pub fn query<T: 'static>(&mut self, key: TaskKey<T>) -> Query<T>
     {
         let key = key.key;
-        let (gen, res) = &mut self.res[key.0]; //should not panic because self.res does never shrink
-        if *gen != key.1 { Query::InvalidKey }
+        let (generation, res) = &mut self.res[key.0]; //should not panic because self.res does never shrink
+        if *generation != key.1 { Query::InvalidKey }
         else if let ResSlot::Done(res_box) = res
         {
             let ret = *res_box.take().unwrap().downcast::<T>().unwrap(); //should not panic if the generation logic is correct
-            *gen = gen.wrapping_add(1);
+            *generation = generation.wrapping_add(1);
             *res = ResSlot::Free;
             self.free.push(key.0);
             self.available -= 1;

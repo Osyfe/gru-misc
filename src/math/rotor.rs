@@ -178,6 +178,14 @@ pub struct Rotor
 	xy: f32
 }
 
+impl Default for Rotor
+{
+	fn default() -> Self
+	{
+		Self::identity()
+	}
+}
+
 impl Neg for Rotor
 {
     type Output = Self;

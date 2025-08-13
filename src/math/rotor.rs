@@ -121,7 +121,7 @@ impl Complex
 	}
 
 	#[inline]
-	pub fn conjugate(self) -> Self
+	pub const fn conjugate(self) -> Self
 	{
 		Self { re: self.re, im: -self.im }
 	}
@@ -133,7 +133,7 @@ impl Complex
 	}
 
     #[inline]
-	pub fn r2(self) -> f32
+	pub const fn r2(self) -> f32
 	{
 		self.re * self.re + self.im * self.im
 	}
@@ -152,13 +152,13 @@ impl Complex
 	}
 
 	#[inline]
-	pub fn transform(self, vec: Vec2) -> Vec2
+	pub const fn transform(self, vec: Vec2) -> Vec2
 	{
 		Vec2(self.re * vec.0 - self.im * vec.1, self.im * vec.0 + self.re * vec.1)
 	}
 
 	#[inline]
-	pub fn to_mat2(self) -> Mat2
+	pub const fn to_mat2(self) -> Mat2
 	{
 		Mat2(Vec2(self.re, self.im), Vec2(-self.im, self.re))
 	}
@@ -284,7 +284,7 @@ impl Rotor
 	}
 
 	#[inline]
-	pub fn from_quaternion(x: f32, y: f32, z: f32, w: f32) -> Self
+	pub const fn from_quaternion(x: f32, y: f32, z: f32, w: f32) -> Self
 	{
 		Self { s: w, yz: -x, zx: -y, xy: -z }
 	}

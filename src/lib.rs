@@ -1,4 +1,4 @@
-#![cfg_attr(any(feature = "jpg", feature = "png", feature = "gltf"), feature(array_chunks))]
+#![cfg_attr(any(feature = "jpg", feature = "png", feature = "gltf"), feature(iter_array_chunks))]
 
 #[cfg(feature = "math")]
 pub mod math;

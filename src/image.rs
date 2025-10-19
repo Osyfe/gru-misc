@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 #[derive(Clone, Copy)]
 pub enum Format
 {
@@ -86,7 +88,7 @@ impl Image
             #[cfg(feature = "jpg")]
             Format::Jpg =>
             {
-                let mut decoder = zune_jpeg::JpegDecoder::new(raw);
+                let mut decoder = zune_jpeg::JpegDecoder::new(Cursor::new(raw));
                 let data = decoder.decode().unwrap();
                 let info = decoder.info().unwrap();
                 (data, (info.width, info.height, info.components))

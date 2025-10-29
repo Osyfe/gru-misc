@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 #[derive(Clone, Copy)]
 pub enum Format
 {
@@ -86,7 +88,7 @@ impl Image
             #[cfg(feature = "jpg")]
             Format::Jpg =>
             {
-                let mut decoder = zune_jpeg::JpegDecoder::new(raw);
+                let mut decoder = zune_jpeg::JpegDecoder::new(Cursor::new(raw));
                 let data = decoder.decode().unwrap();
                 let info = decoder.info().unwrap();
                 (data, (info.width, info.height, info.components))
@@ -108,7 +110,7 @@ impl Image
         if components == 3
         {
             let mut new_data = vec![config.default_alpha; num_pixels * 4];
-            for ([r, g, b], [r_new, g_new, b_new, _]) in data.array_chunks().zip(new_data.array_chunks_mut())
+            for ([r, g, b], [r_new, g_new, b_new, _]) in data.iter().array_chunks().zip(new_data.iter_mut().array_chunks())
             {
                 *r_new = *r;
                 *g_new = *g;
@@ -118,7 +120,7 @@ impl Image
         }
         if matches!(config.channels, Channels::BGRA)
         {
-            for [r, _, b, _] in data.array_chunks_mut()
+            for [r, _, b, _] in data.iter_mut().array_chunks()
             {
                 std::mem::swap(r, b);
             }
@@ -137,7 +139,7 @@ impl Image
     {
         if self.channels != 4 { panic!("no 4 channels"); }
         let mut data = Vec::with_capacity((self.width * self.height) as usize);
-        for pixels in self.data.array_chunks::<4>() { data.push(pixels[channel as usize]); }
+        for pixels in self.data.iter().array_chunks::<4>() { data.push(*pixels[channel as usize]); }
         self.channels = 1;
         self.data = data;
     }

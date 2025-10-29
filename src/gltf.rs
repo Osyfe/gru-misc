@@ -70,7 +70,11 @@ impl Model
                     {
                         let start = (stride * i) + accessor.offset();
                         let data = &data[start..(start + accessor.size())];
-                        for float in data.array_chunks() { vec.push(f32::from_le_bytes(*float)); }
+                        for [f1, f2, f3, f4] in data.iter().array_chunks()
+                        {
+                            let float = [*f1, *f2, *f3, *f4];
+                            vec.push(f32::from_le_bytes(float));
+                        }
                     }
                 }
             }
@@ -129,10 +133,10 @@ impl Model
             }
         }).collect();
 
-        let positions = positions.array_chunks().cloned().map(Vec3::from).collect();
-        let normals = if normals.len() != 0 { Some(normals.array_chunks().cloned().map(Vec3::from).collect()) } else { None };
-        let tangents = if tangents.len() != 0 { Some(tangents.array_chunks().cloned().map(|floats| Vec4::from(floats).without_w()).collect()) } else { None };
-        let tex_coords = if tex_coords.len() != 0 { Some(tex_coords.array_chunks().cloned().map(Vec2::from).collect()) } else { None };
+        let positions = positions.iter().array_chunks().map(|[x, y, z]| Vec3(*x, *y, *z)).collect();
+        let normals = if normals.len() != 0 { Some(normals.iter().array_chunks().map(|[x, y, z]| Vec3(*x, *y, *z)).collect()) } else { None };
+        let tangents = if tangents.len() != 0 { Some(tangents.iter().array_chunks().map(|[x, y, z, w]| Vec4(*x, *y, *z, *w).without_w()).collect()) } else { None };
+        let tex_coords = if tex_coords.len() != 0 { Some(tex_coords.iter().array_chunks().map(|[x, y]| Vec2(*x, *y)).collect()) } else { None };
 
         Self
         {

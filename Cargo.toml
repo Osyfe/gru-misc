@@ -34,7 +34,7 @@ ab_glyph = { version = "0.2.32", optional = true }
 # text_sdf
 easy-signed-distance-field = { version = "0.1.1", features = ["font"], optional = true }
 # thread
-flume = { version = "0.11.1", default-features = false, optional = true }
+flume = { version = "0.12.0", default-features = false, optional = true }
 # futures
 pin-project = { version = "1.1.10", optional = true }
 # time
@@ -45,7 +45,7 @@ getrandom = { version = "0.3.4", features = ["wasm_js"], optional = true }
 rand_xoshiro = { version = "0.7.0", optional = true }
 rand_distr = { version = "0.5.1", default-features = false, features = ["std_math"], optional = true }
 # img
-zune-jpeg = { version = "0.5.1", optional = true }
+zune-jpeg = { version = "0.5.11", optional = true }
 zune-png = { version = "0.4.10", optional = true }
 # gltf
 gltf = { version = "1.4.1", default-features = false, features = ["names"], optional = true }
@@ -57,7 +57,7 @@ serde = { version = "1.0.228", default-features = false, features = ["derive", "
 bytemuck = { version = "1.24.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
-image = { version = "0.25.8", default-features = false, features = ["png"] }
+image = { version = "0.25.9", default-features = false, features = ["png"] }
 
 [package.metadata.docs.rs]
 all-features = true

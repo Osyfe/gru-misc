@@ -142,6 +142,19 @@ impl Pool
     }
 }
 
+impl<T> Query<T>
+{
+    pub fn unwrap(self) -> T
+    {
+        match self
+        {
+            Self::InvalidKey => panic!("unwrap Query::InvalidKey"),
+            Self::Pending => panic!("unwrap Query::Pending"),
+            Self::Done(t) => t
+        }
+    }
+}
+
 impl Shutdown
 {
     pub fn finished(&self) -> bool

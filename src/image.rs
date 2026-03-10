@@ -11,32 +11,10 @@ pub enum Format
 }
 
 #[derive(Clone, Copy)]
-pub enum Channels
+pub enum ChannelOrder
 {
-    L,
     RGBA,
     BGRA
-}
-
-impl Channels
-{
-    fn channels(self) -> u8
-    {
-        match self
-        {
-            Self::L => 1,
-            Self::RGBA | Self::BGRA => 4
-        }
-    }
-
-    fn check(self, components: u8)
-    {
-        match self
-        {
-            Self::L => assert!(components == 1),
-            Self::RGBA | Self::BGRA => assert!(components == 3 || components == 4)
-        }
-    }
 }
 
 #[derive(Clone, Copy)]
@@ -84,7 +62,7 @@ impl Image
 {
     pub fn decode(raw: &[u8], config: Config) -> Self
     {
-        let (mut data, (width, height, components)) = match config.format
+        let (mut data, (width, height)) = match config.format
         {
             #[cfg(feature = "jpg")]
             Format::Jpg =>
@@ -92,7 +70,7 @@ impl Image
                 let mut decoder = zune_jpeg::JpegDecoder::new(Cursor::new(raw));
                 let data = decoder.decode().unwrap();
                 let info = decoder.info().unwrap();
-                (data, (info.width, info.height, info.components))
+                (data, (info.width, info.height))
             },
             #[cfg(feature = "png")]
             Format::Png =>
@@ -100,14 +78,23 @@ impl Image
                 let mut decoder = zune_png::PngDecoder::new(raw);
                 decoder.decode_headers().unwrap();
                 let (width, height) = decoder.get_dimensions().unwrap();
-                let channels = decoder.get_colorspace().unwrap().num_components();
                 let zune_png::zune_core::result::DecodingResult::U8(data) = decoder.decode().unwrap() else { panic!("unsupported pixel format") };
-                (data, (width as u16, height as u16, channels as u8))
+                (data, (width as u16, height as u16))
             }
         };
         let num_pixels = width as usize * height as usize;
-        assert_eq!(num_pixels * channels as usize, data.len());
-        config.channels.check(components);
+        let components = data.len() / num_pixel;
+        if components == 1
+        {
+            let mut new_data = vec![config.default_alpha; num_pixels * 4];
+            for (grey, [r_new, g_new, b_new, _]) in data.iter().zip(new_data.iter_mut().array_chunks())
+            {
+                *r_new = *grey;
+                *g_new = *grey;
+                *b_new = *grey;
+            }
+            data = new_data;
+        }
         if components == 3
         {
             let mut new_data = vec![config.default_alpha; num_pixels * 4];

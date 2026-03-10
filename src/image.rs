@@ -106,7 +106,7 @@ impl Image
             }
         };
         let num_pixels = width as usize * height as usize;
-        assert_eq!(num_pixels * components as usize, data.len());
+        assert_eq!(num_pixels * channels as usize, data.len());
         config.channels.check(components);
         if components == 3
         {

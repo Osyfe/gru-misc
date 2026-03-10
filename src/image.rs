@@ -21,7 +21,7 @@ pub enum ChannelOrder
 pub struct Config
 {
     format: Format,
-    channels: Channels,
+    channel_order: ChannelOrder,
     default_alpha: u8
 }
 
@@ -32,14 +32,14 @@ impl Config
         Self
         {
             format,
-            channels: Channels::RGBA,
+            channel_order: ChannelOrder::RGBA,
             default_alpha: 255
         }
     }
 
-    pub fn channels(mut self, channels: Channels) -> Self
+    pub fn channel_order(mut self, channel_order: ChannelOrder) -> Self
     {
-        self.channels = channels;
+        self.channel_order = channel_order;
         self
     }
 
@@ -83,7 +83,7 @@ impl Image
             }
         };
         let num_pixels = width as usize * height as usize;
-        let components = data.len() / num_pixel;
+        let components = data.len() / num_pixels;
         if components == 1
         {
             let mut new_data = vec![config.default_alpha; num_pixels * 4];
@@ -106,7 +106,7 @@ impl Image
             }
             data = new_data;
         }
-        if matches!(config.channels, Channels::BGRA)
+        if matches!(config.channel_order, ChannelOrder::BGRA)
         {
             for [r, _, b, _] in data.iter_mut().array_chunks()
             {
@@ -118,7 +118,7 @@ impl Image
         {
             width: width as u32,
             height: height as u32,
-            channels: config.channels.channels(),
+            channels: 4,
             data
         }
     }

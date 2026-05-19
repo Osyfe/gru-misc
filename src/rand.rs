@@ -1,4 +1,4 @@
-pub use rand::{Rng, seq::SliceRandom as Slice};
+pub use rand::{Rng, RngExt, seq::SliceRandom as Slice};
 pub use rand_distr::{self as distr, Distribution};
 
 pub type Algo = rand_xoshiro::Xoshiro256PlusPlus;

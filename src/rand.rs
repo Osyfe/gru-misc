@@ -17,6 +17,6 @@ pub fn rng_instant() -> Algo
 
 pub fn rng_entropy() -> Algo
 {
-	use rand::{rngs::OsRng, TryRngCore};
-    rng_seed(OsRng.try_next_u64().unwrap())
+	use rand::{rngs::SysRng, TryRng};
+    rng_seed(SysRng.try_next_u64().unwrap())
 }

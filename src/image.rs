@@ -1,4 +1,4 @@
-#[cfg(feature = "jpg")]
+#[cfg(any(feature = "jpg", feature = "png"))]
 use std::io::Cursor;
 
 #[derive(Clone, Copy)]
@@ -75,9 +75,9 @@ impl Image
             #[cfg(feature = "png")]
             Format::Png =>
             {
-                let mut decoder = zune_png::PngDecoder::new(raw);
+                let mut decoder = zune_png::PngDecoder::new(Cursor::new(raw));
                 decoder.decode_headers().unwrap();
-                let (width, height) = decoder.get_dimensions().unwrap();
+                let (width, height) = decoder.dimensions().unwrap();
                 let zune_png::zune_core::result::DecodingResult::U8(data) = decoder.decode().unwrap() else { panic!("unsupported pixel format") };
                 (data, (width as u16, height as u16))
             }

@@ -1,4 +1,4 @@
-#[cfg(feature = "jpg")]
+#[cfg(any(feature = "jpg", feature = "png"))]
 use std::io::Cursor;
 
 #[derive(Clone, Copy)]

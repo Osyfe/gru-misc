@@ -75,7 +75,10 @@ impl Image
             #[cfg(feature = "png")]
             Format::Png =>
             {
-                let mut decoder = zune_png::PngDecoder::new(Cursor::new(raw));
+                let options = zune_png::zune_core::options::DecoderOptions::new_fast()
+                    .set_max_width(25000)
+                    .set_max_height(25000);
+                let mut decoder = zune_png::PngDecoder::new_with_options(Cursor::new(raw), options);
                 decoder.decode_headers().unwrap();
                 let (width, height) = decoder.dimensions().unwrap();
                 let zune_png::zune_core::result::DecodingResult::U8(data) = decoder.decode().unwrap() else { panic!("unsupported pixel format") };

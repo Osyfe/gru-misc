@@ -9,4 +9,8 @@ text:
 fps:
 	dep upgrade
 
+color:
+	default colors
+	from_u32 constructor (for 0x... input)
+
 perm utils

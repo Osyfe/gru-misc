@@ -130,7 +130,7 @@ function clamp(x, lowerlimit, upperlimit) {
 }
 */
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Rect
 {
     pub min: Vec2,
@@ -140,9 +140,15 @@ pub struct Rect
 impl Rect
 {
     #[inline]
-    pub fn new_origin(max: Vec2) -> Self
+    pub const fn new_zero() -> Self
     {
-        Self { min: Vec2(0.0, 0.0), max }
+        Self { min: Vec2::zero(), max: Vec2::zero() }
+    }
+
+    #[inline]
+    pub const fn new_origin(max: Vec2) -> Self
+    {
+        Self { min: Vec2::zero(), max }
     }
 
     #[inline]
@@ -158,13 +164,13 @@ impl Rect
     }
 
     #[inline]
-    pub fn width(self) -> f32
+    pub const fn width(self) -> f32
     {
         self.max.0 - self.min.0
     }
 
     #[inline]
-    pub fn height(self) -> f32
+    pub const fn height(self) -> f32
     {
         self.max.1 - self.min.1
     }
